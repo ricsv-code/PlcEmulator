@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Documents;
 using PlcEmulator;
-using GlobalSettings;
+using Utilities;
 
 namespace PlcEmulatorCore
 {
@@ -120,9 +120,7 @@ namespace PlcEmulatorCore
             response[0] = request[0];
             Array.Copy(request, 1, response, 1, 8);
 
-
             return response;
-
         }
 
         private byte[] HandleOp99(byte[] request)
@@ -181,7 +179,7 @@ namespace PlcEmulatorCore
 
             if (request[1] == 0)
             {
-                for (int motorIndex = 1; motorIndex <= 4; motorIndex++)
+                for (int motorIndex = 0; motorIndex <= GlobalSettings.NumberOfMotors; motorIndex++)
                 {
                     MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
 
@@ -209,7 +207,7 @@ namespace PlcEmulatorCore
 
             if (request[1] == 0)
             {
-                for (int motorIndex = 0; motorIndex < 4; motorIndex++)
+                for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
                     MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
 
@@ -237,7 +235,7 @@ namespace PlcEmulatorCore
         {
             if (request[1] == 0)
             {
-                for (int motorIndex = 0; motorIndex < 4; motorIndex++)
+                for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
                     MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
 
@@ -346,7 +344,7 @@ namespace PlcEmulatorCore
                     //CalibrationMode
                 }
 
-                for (int motorIndex = 0; motorIndex < 4; motorIndex++)
+                for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
                     MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
 

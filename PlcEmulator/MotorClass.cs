@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
-using GlobalSettings;
+using Utilities;
 
 namespace PlcEmulator
 {
@@ -79,7 +79,7 @@ namespace PlcEmulator
 
     public class MotorService
     {
-        private static readonly MotorService[] _instances = new MotorService[4];
+        private static readonly MotorService[] _instances = new MotorService[GlobalSettings.NumberOfMotors];
         public MotorClass Motor { get; private set; }
 
         private MotorService()
@@ -91,7 +91,7 @@ namespace PlcEmulator
         {
             get
             {
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < (GlobalSettings.NumberOfMotors); i++)
                 {
                     if (_instances[i] == null)
                     {
