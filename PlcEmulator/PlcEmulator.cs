@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Documents;
 using PlcEmulator;
+using GlobalSettings;
 
 namespace PlcEmulatorCore
 {
@@ -205,37 +206,54 @@ namespace PlcEmulatorCore
 
         private byte[] HandleOp104(byte[] request)
         {
-            byte[] response = HandleBaseline(request);
 
-            response[6] = (byte)new Random().Next(101);  //speed
-            response[9] = CalculateChecksum(response);
+            if (request[1] == 0)
+            {
+                for (int motorIndex = 0; motorIndex < 4; motorIndex++)
+                {
+                    MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
 
-            string sentData = BitConverter.ToString(response);
-            _updateSentData?.Invoke($"Sent OP104 response: {sentData}");
-            _updateOperation?.Invoke($"OP104 - 'Go To Home' received");
+                    //motor.SetHiBytePos(); sätt dessa till hemkoordinater?? 
+                    //motor.SetLoBytePos();
 
-            return response;
+                    byte value = request[6];
+                    motor.SetOperationalSpeed(value);
+                }
+
+                byte[] response = HandleBaseline(request);
+
+                response[9] = CalculateChecksum(response);
+
+                string sentData = BitConverter.ToString(response);
+                _updateSentData?.Invoke($"Sent OP104 response: {sentData}");
+                _updateOperation?.Invoke($"OP104 - 'Go To Home' received");
+
+                return response;
+            }
+            return request;
         }
 
         private byte[] HandleOp105(byte[] request)
         {
             if (request[1] == 0)
             {
-                for (int motorIndex = 1; motorIndex <= 4; motorIndex++)
+                for (int motorIndex = 0; motorIndex < 4; motorIndex++)
                 {
                     MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
-                    byte[] response = HandleBaseline(request);
 
-                    //endast ett svar
-
-                    response[9] = CalculateChecksum(response);
-
-                    string sentData = BitConverter.ToString(response);
-                    _updateSentData?.Invoke($"Sent OP105 response from motor {motorIndex}: {sentData}");
-                    _updateOperation?.Invoke($"OP105 - 'Homing' received");
-
-                    return response;
+                    byte value = request[6];
+                    motor.SetOperationalSpeed(value);
                 }
+
+                byte[] response = HandleBaseline(request);
+
+                response[9] = CalculateChecksum(response);
+
+                string sentData = BitConverter.ToString(response);
+                _updateSentData?.Invoke($"Sent OP105 response: {sentData}");
+                _updateOperation?.Invoke($"OP105 - 'Homing' received");
+
+                return response;
             }
             return request;
         }
@@ -244,16 +262,16 @@ namespace PlcEmulatorCore
         {
             if (request[1] == 0) 
             {
-                return request; //elr om vi ska ge alla motorpositioner, lös det här då
+                return request; 
             }
             else
             {
-                int motorIndex = request[1] - 1; //kolla om denna är 1-4 senare
+                int motorIndex = request[1] - 1; 
 
                 MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
                 byte[] response = HandleBaseline(request);
 
-                byte[] result = new byte[6];
+                byte[] result = new byte[1];
                 if (motor.MotorInProgress)
                     result[0] |= 1 << 0;
                 if (motor.MotorIsHomed)
@@ -273,6 +291,7 @@ namespace PlcEmulatorCore
 
                 response[2] = motor.GetHiBytePos();
                 response[3] = motor.GetLoBytePos();
+                response[4] = motor.GetOperationalSpeed();
 
                 response[6] = result[0];
 
@@ -288,6 +307,12 @@ namespace PlcEmulatorCore
 
         private byte[] HandleOp107(byte[] request)
         {
+
+            if (request[1] == 1)
+            {
+                //IO1 on
+            }
+
             byte[] response = HandleBaseline(request);
             response[9] = CalculateChecksum(response);
 
@@ -298,43 +323,78 @@ namespace PlcEmulatorCore
             return response;
         }
 
-        private byte[] HandleOp255(byte[] request) //fixa denna, gemensam boolean (om en motor rör sig så är MachineInMotion true t.ex)
+        private byte[] HandleOp255(byte[] request) //fixad???
         {
-            int motorIndex = request[1] - 1;
+            if (request[1] == 0)
+            {
+                byte[] mStatus = new byte[1];
+                byte[] oStatus = new byte[1];  
+                byte[] response = HandleBaseline(request);
 
-            MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
+                if (request[5] == 1)
+                {
+                    //ManualMode
+                }
 
-            byte[] response = HandleBaseline(request);
+                if (request[6] == 1)
+                {
+                    //Green Lamp (if possible)
+                }
 
-            byte[] result = new byte[6];
-            if (motor.MotorInProgress)
-                result[0] |= 1 << 0;
-            if (motor.MotorIsHomed)
-                result[0] |= 1 << 1;
-            if (motor.InHomePosition)
-                result[0] |= 1 << 2;
-            if (motor.InCentredPosition)
-                result[0] |= 1 << 3;
-            if (motor.InMaxPosition)
-                result[0] |= 1 << 4;
-            if (motor.InMinPosition)
-                result[0] |= 1 << 5;
-            if (motor.Error)
-                result[0] |= 1 << 6;
-            if (motor.Reserved)
-                result[0] |= 1 << 7;
+                if (request[7] == 1)
+                {
+                    //CalibrationMode
+                }
 
-            response[1] = result[0];
-            response[5] = 0; //status [ProhibitMovement , SickReset, SickActive, E-Stop reset, E-Stop]
-            response[6] = 0; //System Error Code
-            response[7] = 0; //Command Execution Error
-            response[9] = CalculateChecksum(response);
+                for (int motorIndex = 0; motorIndex < 4; motorIndex++)
+                {
+                    MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
 
-            string sentData = BitConverter.ToString(response);
-            _updateSentData?.Invoke($"Sent OP255 response: {sentData}");
-            _updateOperation?.Invoke($"OP255 - 'SYNC' received");
+                    if (motor.MachineInMotion)
+                        mStatus[0] |= 1 << 0;
+                    if (motor.MachineStill)
+                        mStatus[0] |= 1 << 1;
+                    if (motor.MachineNeedsHoming)
+                        mStatus[0] |= 1 << 2;
+                    if (motor.InCentredPosition) //Machine in Center?
+                        mStatus[0] |= 1 << 3;
+                    if (motor.InHomePosition) //Machine in Home?
+                        mStatus[0] |= 1 << 4;
+                    if (motor.OperationMode)
+                        mStatus[0] |= 1 << 5;
+                    if (motor.OverrideKey)
+                        mStatus[0] |= 1 << 6;
+                    if (motor.Reserved)
+                        mStatus[0] |= 1 << 7;
 
-            return response;
+                    if (motor.EStop)
+                        oStatus[0] |= 1 << 0;
+                    if (motor.EStopReset)
+                        oStatus[0] |= 1 << 1;
+                    if (motor.SickActive)
+                        oStatus[0] |= 1 << 2;
+                    if (motor.SickReset)
+                        oStatus[0] |= 1 << 3;
+                    if (motor.ProhibitMovement)
+                        oStatus[0] |= 1 << 4;
+
+                }
+
+                response[1] = mStatus[0];
+                response[5] = oStatus[0];
+
+                response[6] = 0; //System Error Code
+                response[7] = 0; //Command Execution Error
+
+                response[9] = CalculateChecksum(response);
+
+                string sentData = BitConverter.ToString(response);
+                _updateSentData?.Invoke($"Sent OP255 response: {sentData}");
+                _updateOperation?.Invoke($"OP255 - 'SYNC' received");
+
+                return response;
+            }
+            return request;
         }
 
 

@@ -5,20 +5,39 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
+using GlobalSettings;
 
 namespace PlcEmulator
 {
     public class MotorClass
     {
-    public bool Reserved { get; set; }
-    public bool Error { get; set; }
-    public bool InMinPosition { get; set; }
-    public bool InMaxPosition { get; set; }
-    public bool InCentredPosition { get; set; }
-    public bool InHomePosition { get; set; }
-    public bool MotorIsHomed { get; set; }
-    public bool MotorInProgress { get; set; }
+        //Machine Status booleans
+        public bool Reserved { get; set; }
+        public bool Error { get; set; }
+        public bool InMinPosition { get; set; }
+        public bool InMaxPosition { get; set; }
+        public bool InCentredPosition { get; set; }
+        public bool InHomePosition { get; set; }
+        public bool MotorIsHomed { get; set; }
+        public bool MotorInProgress { get; set; }
 
+        //
+        public bool OverrideKey { get; set; }
+        public bool OperationMode { get; set; }
+        public bool MachineNeedsHoming { get; set; }
+        public bool MachineStill { get; set; }
+        public bool MachineInMotion { get; set; }
+    //
+
+    //Status byte 5 on code 255
+    public bool ProhibitMovement { get; set; }
+        public bool SickReset { get; set; }
+        public bool SickActive { get; set; }
+        public bool EStopReset { get; set; }
+        public bool EStop { get; set; }
+        //
+
+    
     public byte? OperationalSpeed { get; set; }
 
     public byte? HiBytePos { get; set; }
@@ -72,7 +91,7 @@ namespace PlcEmulator
         {
             get
             {
-                for (int i = 1; i < 4; i++)
+                for (int i = 0; i < 4; i++)
                 {
                     if (_instances[i] == null)
                     {
@@ -190,6 +209,135 @@ namespace PlcEmulator
             }
         }
 
+        public bool OverrideKey
+        {
+            get => Motor.OverrideKey;
+            set
+            {
+                if (Motor.OverrideKey != value)
+                {
+                    Motor.OverrideKey = value;
+                    OnPropertyChanged(nameof(OverrideKey));
+                }
+            }
+        }
+
+        public bool OperationMode
+        {
+            get => Motor.OperationMode;
+            set
+            {
+                if (Motor.OperationMode != value)
+                {
+                    Motor.OperationMode = value;
+                    OnPropertyChanged(nameof(OperationMode));
+                }
+            }
+        }
+
+        public bool MachineNeedsHoming
+        {
+            get => Motor.MachineNeedsHoming;
+            set
+            {
+                if (Motor.MachineNeedsHoming != value)
+                {
+                    Motor.MachineNeedsHoming = value;
+                    OnPropertyChanged(nameof(MachineNeedsHoming));
+                }
+            }
+        }
+
+        public bool MachineStill
+        {
+            get => Motor.MachineStill;
+            set
+            {
+                if (Motor.MachineStill != value)
+                {
+                    Motor.MachineStill = value;
+                    OnPropertyChanged(nameof(MachineStill));
+                }
+            }
+        }
+
+        public bool MachineInMotion
+        {
+            get => Motor.MachineInMotion;
+            set
+            {
+                if (Motor.MachineInMotion != value)
+                {
+                    Motor.MachineInMotion = value;
+                    OnPropertyChanged(nameof(MachineInMotion));
+                }
+            }
+        }
+
+        public bool ProhibitMovement
+        {
+            get => Motor.ProhibitMovement;
+            set
+            {
+                if (Motor.ProhibitMovement != value)
+                {
+                    Motor.ProhibitMovement = value;
+                    OnPropertyChanged(nameof(ProhibitMovement));
+                }
+            }
+        }
+
+        public bool SickReset
+        {
+            get => Motor.SickReset;
+            set
+            {
+                if (Motor.SickReset != value)
+                {
+                    Motor.SickReset = value;
+                    OnPropertyChanged(nameof(SickReset));
+                }
+            }
+        }
+
+        public bool SickActive
+        {
+            get => Motor.SickActive;
+            set
+            {
+                if (Motor.SickActive != value)
+                {
+                    Motor.SickActive = value;
+                    OnPropertyChanged(nameof(SickActive));
+                }
+            }
+        }
+
+        public bool EStopReset
+        {
+            get => Motor.EStopReset;
+            set
+            {
+                if (Motor.EStopReset != value)
+                {
+                    Motor.EStopReset = value;
+                    OnPropertyChanged(nameof(EStopReset));
+                }
+            }
+        }
+
+        public bool EStop
+        {
+            get => Motor.EStop;
+            set
+            {
+                if (Motor.EStop != value)
+                {
+                    Motor.EStop = value;
+                    OnPropertyChanged(nameof(EStop));
+                }
+            }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
