@@ -149,6 +149,10 @@ namespace PlcEmulatorCore
 
         private byte[] HandleOp102(byte[] request)
         {
+            if (request[1] == 0)
+            {
+                return request;
+            }
             int motorIndex = request[1] - 1;
 
             MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
@@ -166,7 +170,6 @@ namespace PlcEmulatorCore
             response[9] = CalculateChecksum(response);
 
             string sentData = BitConverter.ToString(response);
-
 
             _updateSentData?.Invoke($"Sent OP102 response: {sentData}");
             _updateOperation?.Invoke($"OP102 - 'Move One Motor to Position' received");

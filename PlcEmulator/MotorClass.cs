@@ -108,7 +108,10 @@ namespace PlcEmulator
     {
         public MotorViewModel()
         {
-            Motor = MotorService.Instances[1].Motor;
+            for (int i = 0; i < (GlobalSettings.NumberOfMotors); i++)
+            {
+                Motor = MotorService.Instances[i].Motor;
+            }
         }
         public MotorClass Motor
         { get; }
