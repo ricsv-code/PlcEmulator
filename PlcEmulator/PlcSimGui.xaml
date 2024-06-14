@@ -5,20 +5,20 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PlcEmulator"
         mc:Ignorable="d"
-        Title="PLC Emulator" Height="650" Width="1500">
+        Title="PLC Emulator" Height="650" Width="1600">
     <Window.DataContext>
-        <local:MotorViewModel />
+        <local:FrontViewModel />
     </Window.DataContext>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="25"/>
             <RowDefinition Height="430"/>
-            <RowDefinition Height="40"/>
+            <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="600"/>
+            <ColumnDefinition Width="700"/>
         </Grid.ColumnDefinitions>
 
         <TextBlock Margin="10,0,0,0" Height="20" Grid.Column="0" Grid.Row="0" Text="Received:"/>
@@ -40,11 +40,12 @@
              IsReadOnly="True"/>
 
 
-        <WrapPanel x:Name="imageContainer" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="2" Grid.RowSpan="3"
-                   ItemHeight="240" ItemWidth="240" Margin="10">
+        <WrapPanel x:Name="imageContainer" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="2" Grid.RowSpan="2"
+                   ItemHeight="auto" ItemWidth="auto" Margin="0">
 
         </WrapPanel>
-        <TextBox x:Name="textBoxImageData" Height="20" Width="180" Grid.Column="2" Grid.RowSpan="3" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,0"/>
+        <TextBox x:Name="textBoxImageData" Height="20" Width="180" Grid.Column="2" Grid.RowSpan="3" HorizontalAlignment="Center" VerticalAlignment="Bottom" 
+                 Margin="0,0,0,20" IsReadOnly="True"/>
 
         <Button x:Name="buttonStart" Content="Start" HorizontalAlignment="Left" Grid.Row="2" Grid.Column="0" Margin="10,0,0,0" VerticalAlignment="Top" 
                 Width="75" Click="buttonStart_Click"/>
@@ -55,17 +56,22 @@
         <Button x:Name="buttonClean" Content="Clean" HorizontalAlignment="Left" Grid.Row="2" Grid.Column="0" Margin="180,0,0,0" VerticalAlignment="Top" 
                 Width="75" Click="CleanButton_Click"/>
 
-
-        <WrapPanel Height="20" Grid.ColumnSpan="2" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,-24,0,0">
-        <TextBlock Margin="0,0,20,0" Height="20" Text="MotorIndex" FontWeight="Bold"/>
-        <CheckBox IsChecked="{Binding MotorInProgress}" Content="MotorInProgress" Margin="6,2,6,0"/>
-        <CheckBox IsChecked="{Binding MotorIsHomed}" Content="MotorIsHomed" Margin="6,2,6,0"/>
-        <CheckBox IsChecked="{Binding InHomePosition}" Content="InHomePosition" Margin="6,2,6,0"/>
-        <CheckBox IsChecked="{Binding InCentredPosition}" Content="InCenteredPosition" Margin="6,2,6,0"/>
-        <CheckBox IsChecked="{Binding InMaxPosition}" Content="InMaxPosition" Margin="6,2,6,0"/>
-        <CheckBox IsChecked="{Binding InMinPosition}" Content="InMinPosition" Margin="6,2,6,0"/>
-        <CheckBox IsChecked="{Binding Error}" Content="Error" Margin="6,2,6,0"/>
-        </WrapPanel>
+        <ItemsControl ItemsSource="{Binding Motors}" Grid.ColumnSpan="2" Grid.Row="2" HorizontalAlignment="Center" Margin="0,20">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding MotorIndex}" Margin="-40,0,0,0"/>
+                        <CheckBox IsChecked="{Binding MotorInProgress}" Content="MotorInProgress" Margin="6,2,6,0"/>
+                        <CheckBox IsChecked="{Binding MotorIsHomed}" Content="MotorIsHomed" Margin="6,2,6,0"/>
+                        <CheckBox IsChecked="{Binding InHomePosition}" Content="InHomePosition" Margin="6,2,6,0"/>
+                        <CheckBox IsChecked="{Binding InCentredPosition}" Content="InCenteredPosition" Margin="6,2,6,0"/>
+                        <CheckBox IsChecked="{Binding InMaxPosition}" Content="InMaxPosition" Margin="6,2,6,0"/>
+                        <CheckBox IsChecked="{Binding InMinPosition}" Content="InMinPosition" Margin="6,2,6,0"/>
+                        <CheckBox IsChecked="{Binding Error}" Content="Error" Margin="6,2,6,0"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
 
         <TextBox x:Name="textBoxOperation" Height="20" Grid.ColumnSpan="2"  Grid.Row="2" VerticalAlignment="Top" Margin="0,0,10,0" HorizontalAlignment="Right" Width="420" TextWrapping="Wrap"/>
     </Grid>

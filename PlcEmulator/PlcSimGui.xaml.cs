@@ -11,6 +11,7 @@ using System.Drawing.Drawing2D;
 using System.Reflection.Metadata;
 using System.Windows.Media;
 using Utilities;
+using System.Windows.Controls;
 
 namespace PlcEmulator
 {
@@ -92,10 +93,10 @@ namespace PlcEmulator
             double angleDegrees = (double)(angleRadians * (180m / (decimal)Math.PI));
             int presentedDegrees = Convert.ToInt32(angleDegrees);
 
-
         Dispatcher.Invoke(() =>
             {
-            System.Windows.Controls.Image image = imageContainer.Children[motorIndex] as System.Windows.Controls.Image;
+            StackPanel stackPanel = imageContainer.Children[motorIndex] as StackPanel;
+            System.Windows.Controls.Image image = stackPanel.Children[1] as System.Windows.Controls.Image;
 
             if (image != null && image.RenderTransform is RotateTransform rotateTransform) 
             {
@@ -125,9 +126,24 @@ namespace PlcEmulator
                 RotateTransform rotateTransform = new RotateTransform(0);
                 image.RenderTransform = rotateTransform;
 
+                TextBlock textBlock = new TextBlock();
+                {
+                    textBlock.Text = $"Motor: {i}";
+                    textBlock.HorizontalAlignment = HorizontalAlignment.Center;
+                    textBlock.VerticalAlignment = VerticalAlignment.Top;
+                    textBlock.Margin = new Thickness(10);
+                };
+
+                StackPanel stackPanel = new StackPanel();
+                {
+                    stackPanel.Children.Add(textBlock);
+                    stackPanel.Children.Add(image);
+                    stackPanel.Margin = new Thickness(10);
+                }
+
                 Dispatcher.Invoke(() =>
                 {
-                    imageContainer.Children.Add(image);
+                    imageContainer.Children.Add(stackPanel);
                 });
 
             }

@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using Utilities;
+using System.Security.RightsManagement;
+using System.Collections.ObjectModel;
 
 namespace PlcEmulator
 {
@@ -27,22 +29,22 @@ namespace PlcEmulator
         public bool MachineNeedsHoming { get; set; }
         public bool MachineStill { get; set; }
         public bool MachineInMotion { get; set; }
-    //
+        //
 
-    //Status byte 5 on code 255
-    public bool ProhibitMovement { get; set; }
+        //Status byte 5 on code 255
+        public bool ProhibitMovement { get; set; }
         public bool SickReset { get; set; }
         public bool SickActive { get; set; }
         public bool EStopReset { get; set; }
         public bool EStop { get; set; }
         //
 
-    
-    public byte? OperationalSpeed { get; set; }
 
-    public byte? HiBytePos { get; set; }
+        public byte? OperationalSpeed { get; set; }
 
-    public byte? LoBytePos { get; set; }
+        public byte? HiBytePos { get; set; }
+
+        public byte? LoBytePos { get; set; }
 
         public void SetOperationalSpeed(byte value)
         {
@@ -77,10 +79,10 @@ namespace PlcEmulator
 
     }
 
-    public class MotorService
+    public class MotorService //kör fler MotorClass instanser
     {
         private static readonly MotorService[] _instances = new MotorService[GlobalSettings.NumberOfMotors];
-        public MotorClass Motor { get; private set; }
+        public MotorClass Motor { get; }
 
         private MotorService()
         {
@@ -104,17 +106,20 @@ namespace PlcEmulator
     }
 
 
-    public class MotorViewModel : INotifyPropertyChanged
+    public class MotorViewModel : INotifyPropertyChanged //binder ui properties till MotorClass instanser
     {
-        public MotorViewModel()
+        private MotorClass Motor;
+
+        public int MotorIndex { get; }
+        public MotorViewModel(MotorClass motor, int index)
         {
-            for (int i = 0; i < (GlobalSettings.NumberOfMotors); i++)
-            {
-                Motor = MotorService.Instances[i].Motor;
-            }
+            Motor = motor;
+            MotorIndex = (index + 1);
         }
-        public MotorClass Motor
-        { get; }
+        public MotorClass motor
+        {
+            get { return Motor; }
+        }
         public bool Reserved
         {
             get => Motor.Reserved;
@@ -347,6 +352,24 @@ namespace PlcEmulator
         protected void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+
+    public class FrontViewModel //samlar MotorViewModels från MotorService
+    {
+        public ObservableCollection<MotorViewModel> Motors { get; set; }
+
+        public FrontViewModel()
+        {
+            Motors = new ObservableCollection<MotorViewModel>();
+
+            var motorServices = MotorService.Instances;
+
+            for (int i = 0; i < GlobalSettings.NumberOfMotors; i++) 
+            {
+                Motors.Add(new MotorViewModel(motorServices[i].Motor, i));
+            }
         }
     }
 }
