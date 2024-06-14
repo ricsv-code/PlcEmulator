@@ -26,7 +26,6 @@ namespace PlcEmulator
         {
             InitializeComponent();
             CreateMotorImages();
-            motorImage.Source = new BitmapImage(new Uri("C:\\Users\\risve\\source\\repos\\PlcEmulator\\PlcEmulator\\arrow-right.png"));
         }
         
         private void buttonStart_Click(object sender, RoutedEventArgs e)
@@ -86,19 +85,28 @@ namespace PlcEmulator
             });
         }
 
-        private void UpdateImage(byte[] request)
+        private void UpdateImage(byte[] request, int motorIndex)
         {
             int position = (request[2] << 8) | request[3];
             decimal angleRadians = position / 1000.0m;
             double angleDegrees = (double)(angleRadians * (180m / (decimal)Math.PI));
             int presentedDegrees = Convert.ToInt32(angleDegrees);
 
-            Dispatcher.Invoke(() =>
+
+        Dispatcher.Invoke(() =>
+            {
+            System.Windows.Controls.Image image = imageContainer.Children[motorIndex] as System.Windows.Controls.Image;
+
+            if (image != null && image.RenderTransform is RotateTransform rotateTransform) 
             {
                 rotateTransform.Angle = angleDegrees;
-                textBoxImageData.Text = ("Rotated: " + presentedDegrees + "°");
-            });
+                textBoxImageData.Text = ("Rotated motor " + (motorIndex + 1) + ": " + presentedDegrees + "°");
+            }
+         });
+
+
         }
+        
 
 
         private void CreateMotorImages()
@@ -112,8 +120,7 @@ namespace PlcEmulator
 
                 image.Width = 240;
                 image.Height = 240;
-
-                RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
+                image.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
 
                 RotateTransform rotateTransform = new RotateTransform(0);
                 image.RenderTransform = rotateTransform;

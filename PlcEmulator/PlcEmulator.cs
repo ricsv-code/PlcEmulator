@@ -17,10 +17,10 @@ namespace PlcEmulatorCore
         private Action<string> _updateReceivedData;
         private Action<string> _updateSentData;
         private Action<string> _updateOperation;
-        private Action<byte[]> _updateImage;
+        private Action<byte[], int> _updateImage;
 
         public EmulatorPlc(string ipAddress, int port, Action<string> updateReceivedData, 
-            Action<string> updateSentData, Action<string> updateOperation, Action<byte[]> updateImage)
+            Action<string> updateSentData, Action<string> updateOperation, Action<byte[], int> updateImage)
         {
             _server = new TcpListener(IPAddress.Parse(ipAddress), port);
             _updateReceivedData = updateReceivedData;
@@ -157,7 +157,7 @@ namespace PlcEmulatorCore
 
             MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
 
-            _updateImage(request);
+            _updateImage(request, motorIndex);
 
             motor.SetHiBytePos(request[2]);
             motor.SetLoBytePos(request[3]);

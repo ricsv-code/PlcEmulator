@@ -39,14 +39,10 @@
              VerticalScrollBarVisibility="Auto"
              IsReadOnly="True"/>
 
-        <Image x:Name="motorImage" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="2" Grid.RowSpan="3"
-               RenderTransformOrigin="0.5,0.5">
-            <Image.RenderTransform>
-                <RotateTransform x:Name="rotateTransform"/>
-            </Image.RenderTransform>
-        </Image>
+
         <WrapPanel x:Name="imageContainer" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="2" Grid.RowSpan="3"
                    ItemHeight="240" ItemWidth="240" Margin="10">
+
         </WrapPanel>
         <TextBox x:Name="textBoxImageData" Height="20" Width="180" Grid.Column="2" Grid.RowSpan="3" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,0"/>
 
