@@ -8,6 +8,7 @@ using System.ComponentModel;
 using Utilities;
 using System.Security.RightsManagement;
 using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
 
 namespace PlcEmulator
 {
@@ -356,12 +357,21 @@ namespace PlcEmulator
     }
 
 
-    public class FrontViewModel //samlar MotorViewModels från MotorService
+    public class FrontViewModel : INotifyPropertyChanged //samlar MotorViewModels från MotorService
     {
         public ObservableCollection<MotorViewModel> Motors { get; set; }
+        private double _windowHeight;
+        private double _windowWidth;
+        private double _motorColumnWidth;
+        private int _numberOfMotors;
 
         public FrontViewModel()
         {
+
+            GlobalSettings.NumberOfMotorsChanged += OnNumberOfMotorsChanged;
+            NumberOfMotors = GlobalSettings.NumberOfMotors;
+            UpdateWindowDimensions();
+
             Motors = new ObservableCollection<MotorViewModel>();
 
             var motorServices = MotorService.Instances;
@@ -371,9 +381,79 @@ namespace PlcEmulator
                 Motors.Add(new MotorViewModel(motorServices[i].Motor, i));
             }
         }
+
+        public double WindowHeights
+        {
+            get => _windowHeight;
+            set
+            {
+                _windowHeight = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double WindowWidths
+        {
+            get => _windowWidth;
+            set
+            {
+                _windowWidth = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double MotorColumnWidth
+        {
+            get => _motorColumnWidth;
+            set
+            {
+                _motorColumnWidth = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int NumberOfMotors
+        {
+            get => _numberOfMotors;
+            set
+            {
+                _numberOfMotors = value;
+                OnPropertyChanged();
+                UpdateWindowDimensions();
+            }
+        }
+
+        private void UpdateWindowDimensions()
+        {
+            if (NumberOfMotors == 4)
+            {
+                WindowHeights = 650;
+                WindowWidths = 1600;
+                MotorColumnWidth = 580;
+
+            }
+            else if (NumberOfMotors == 9)
+            {
+                WindowHeights = 910;
+                WindowWidths = 1860;
+                MotorColumnWidth = 820;
+            }
+        }
+
+        private void OnNumberOfMotorsChanged(object sender, EventArgs e)
+        {
+            NumberOfMotors = GlobalSettings.NumberOfMotors;
+            UpdateWindowDimensions();
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+
+
     }
 }
-
-
 
 

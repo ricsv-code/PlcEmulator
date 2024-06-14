@@ -23,11 +23,15 @@ namespace PlcEmulator
         private bool _isRunning;
         private Timer _positionUpdateTimer;
 
+
+
         public PlcSimGui()
         {
             InitializeComponent();
             CreateMotorImages();
         }
+
+
         
         private void buttonStart_Click(object sender, RoutedEventArgs e)
         {
@@ -39,6 +43,8 @@ namespace PlcEmulator
                 _stopwatch.Start();
                 _emulator.Start();
                 _isRunning = true;
+
+                textBoxOperation.Text = "PLC Emulator started..\r\n";
             }
         }
 
@@ -48,8 +54,9 @@ namespace PlcEmulator
             {
                 _stopwatch.Stop();
                 _emulator.Stop();
-                textBoxOperation.Text = "PLC Emulator stopped..\r\n";
                 _isRunning = false;
+
+                textBoxOperation.Text = "PLC Emulator stopped..\r\n";
             }
         }
 
@@ -57,6 +64,20 @@ namespace PlcEmulator
         {
             textBoxSentData.Text = string.Empty;
             textBoxReceivedData.Text = string.Empty;
+        }
+
+        private void NumberOfMotorsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem && menuItem.IsChecked)
+            {
+                if (int.TryParse(menuItem.Header.ToString(), out int numberOfMotors))
+                {
+                    var viewModel = DataContext as FrontViewModel;
+                    viewModel.NumberOfMotors = numberOfMotors;
+
+                    CreateMotorImages();
+                }
+            }
         }
 
         private void UpdateReceivedData(string data)
@@ -103,43 +124,50 @@ namespace PlcEmulator
                 rotateTransform.Angle = angleDegrees;
                 textBoxImageData.Text = ("Rotated motor " + (motorIndex + 1) + ": " + presentedDegrees + "°");
             }
-         });
-
+            });
 
         }
         
-
-
         private void CreateMotorImages()
         {
+            Dispatcher.Invoke(() =>
+            {
+                while (imageContainer.Children.Count > 0)
+                {
+                    var child = imageContainer.Children[0];
+                    imageContainer.Children.Remove(child);
+                }
+            }); //rensar alla barn innan repopulering
+
             for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
             {
                 var motorImage = new BitmapImage(new Uri("C:\\Users\\risve\\source\\repos\\PlcEmulator\\PlcEmulator\\arrow-right.png"));
 
                 var image = new System.Windows.Controls.Image();
+
                 image.Source = motorImage;
-
-                image.Width = 240;
-                image.Height = 240;
-                image.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
-
-                RotateTransform rotateTransform = new RotateTransform(0);
-                image.RenderTransform = rotateTransform;
+                {
+                    image.Width = 240;
+                    image.Height = 240;
+                    image.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
+                };
 
                 TextBlock textBlock = new TextBlock();
                 {
-                    textBlock.Text = $"Motor: {i}";
+                    textBlock.Text = $"Motor: {i + 1}";
                     textBlock.HorizontalAlignment = HorizontalAlignment.Center;
                     textBlock.VerticalAlignment = VerticalAlignment.Top;
-                    textBlock.Margin = new Thickness(10);
+                    textBlock.Height = 20;
                 };
 
                 StackPanel stackPanel = new StackPanel();
                 {
                     stackPanel.Children.Add(textBlock);
                     stackPanel.Children.Add(image);
-                    stackPanel.Margin = new Thickness(10);
                 }
+
+                RotateTransform rotateTransform = new RotateTransform(0);
+                image.RenderTransform = rotateTransform;
 
                 Dispatcher.Invoke(() =>
                 {

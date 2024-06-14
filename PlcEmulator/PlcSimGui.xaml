@@ -3,36 +3,55 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:PlcEmulator"
+        xmlns:local="clr-namespace:PlcEmulator" xmlns:utilities="clr-namespace:Utilities"
         mc:Ignorable="d"
-        Title="PLC Emulator" Height="650" Width="1600">
+        Title="PLC Emulator" Height="{Binding WindowHeights, Mode=TwoWay}" Width="{Binding WindowWidths, Mode=TwoWay}">
     <Window.DataContext>
         <local:FrontViewModel />
     </Window.DataContext>
+    <Window.Resources>
+        <utilities:IntToBooleanConverter x:Key="intToBool"/>
+    </Window.Resources>
+    
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="25"/>
             <RowDefinition Height="430"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="700"/>
+            <ColumnDefinition Width="445"/>
+            <ColumnDefinition Width="445"/>
+            <ColumnDefinition Width="{Binding MotorColumnWidth, Mode=TwoWay}"/>
         </Grid.ColumnDefinitions>
+        <DockPanel Grid.Row="0" Grid.ColumnSpan="3">
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="Options">
+                    <MenuItem Header="Number of Motors:">
+                        <MenuItem Header="4" IsCheckable="True" 
+                                  IsChecked="{Binding NumberOfMotors, Mode=TwoWay, Converter={StaticResource intToBool},
+                                  ConverterParameter=4}" Click="NumberOfMotorsMenuItem_Click"/>
+                        <MenuItem Header="9" IsCheckable="True" 
+                                  IsChecked="{Binding NumberOfMotors, Mode=TwoWay, Converter={StaticResource intToBool},
+                                  ConverterParameter=9}" Click="NumberOfMotorsMenuItem_Click"/>
+                    </MenuItem>
+                </MenuItem>
+            </Menu>
+        </DockPanel>
 
-        <TextBlock Margin="10,0,0,0" Height="20" Grid.Column="0" Grid.Row="0" Text="Received:"/>
+        <TextBlock Margin="10,0,0,0" Height="20" Grid.Column="0" Grid.Row="1" Text="{Binding NumberOfMotors}"/>
 
-        <TextBox x:Name="textBoxReceivedData" Grid.Column="0" Grid.Row="1"
+        <TextBox x:Name="textBoxReceivedData" Grid.Column="0" Grid.Row="2"
              HorizontalAlignment="Left" Height="400" Margin="8,0,0,0" VerticalAlignment="Top" 
              Width="430" 
              TextWrapping="Wrap" 
              VerticalScrollBarVisibility="Auto"
              IsReadOnly="True"/>
 
-        <TextBlock Margin="15,0,0,0" Height="20" Grid.Column="1" Grid.Row="0" Text="Sent:"/>
+        <TextBlock Margin="15,0,0,0" Height="20" Grid.Column="1" Grid.Row="1" Text="Sent:"/>
 
-        <TextBox x:Name="textBoxSentData" Grid.Column="1" Grid.Row="1"
+        <TextBox x:Name="textBoxSentData" Grid.Column="1" Grid.Row="2"
              HorizontalAlignment="Right" Height="400" Margin="0,0,8,0" VerticalAlignment="Top" 
              Width="430" 
              TextWrapping="Wrap" 
@@ -40,27 +59,27 @@
              IsReadOnly="True"/>
 
 
-        <WrapPanel x:Name="imageContainer" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="2" Grid.RowSpan="2"
-                   ItemHeight="auto" ItemWidth="auto" Margin="0">
+        <WrapPanel x:Name="imageContainer" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="1" Grid.Column="2" Grid.RowSpan="3" Margin="0"
+                   ItemHeight="260" ItemWidth="240">
 
         </WrapPanel>
-        <TextBox x:Name="textBoxImageData" Height="20" Width="180" Grid.Column="2" Grid.RowSpan="3" HorizontalAlignment="Center" VerticalAlignment="Bottom" 
-                 Margin="0,0,0,20" IsReadOnly="True"/>
+        <TextBox x:Name="textBoxImageData" Height="20" Width="180" Grid.Column="2" Grid.Row="4" HorizontalAlignment="Center" VerticalAlignment="Bottom" 
+                 Margin="0,0,0,0" IsReadOnly="True"/>
 
-        <Button x:Name="buttonStart" Content="Start" HorizontalAlignment="Left" Grid.Row="2" Grid.Column="0" Margin="10,0,0,0" VerticalAlignment="Top" 
+        <Button x:Name="buttonStart" Content="Start" HorizontalAlignment="Left" Grid.Row="3" Grid.Column="0" Margin="10,0,0,0" VerticalAlignment="Top" 
                 Width="75" Click="buttonStart_Click"/>
 
-        <Button x:Name="buttonStop" Content="Stop" HorizontalAlignment="Left" Grid.Row="2" Grid.Column="0" Margin="95,0,0,0" VerticalAlignment="Top" 
+        <Button x:Name="buttonStop" Content="Stop" HorizontalAlignment="Left" Grid.Row="3" Grid.Column="0" Margin="95,0,0,0" VerticalAlignment="Top" 
                 Width="75" Click="buttonStop_Click"/>
 
-        <Button x:Name="buttonClean" Content="Clean" HorizontalAlignment="Left" Grid.Row="2" Grid.Column="0" Margin="180,0,0,0" VerticalAlignment="Top" 
+        <Button x:Name="buttonClean" Content="Clean" HorizontalAlignment="Left" Grid.Row="3" Grid.Column="0" Margin="180,0,0,0" VerticalAlignment="Top" 
                 Width="75" Click="CleanButton_Click"/>
 
-        <ItemsControl ItemsSource="{Binding Motors}" Grid.ColumnSpan="2" Grid.Row="2" HorizontalAlignment="Center" Margin="0,20">
+        <ItemsControl ItemsSource="{Binding Motors, Mode=TwoWay}" Grid.ColumnSpan="2" Grid.Row="3" HorizontalAlignment="Center" Margin="0,30">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding MotorIndex}" Margin="-40,0,0,0"/>
+                        <TextBlock Text="{Binding MotorIndex}" Margin="-20,0,0,0"/>
                         <CheckBox IsChecked="{Binding MotorInProgress}" Content="MotorInProgress" Margin="6,2,6,0"/>
                         <CheckBox IsChecked="{Binding MotorIsHomed}" Content="MotorIsHomed" Margin="6,2,6,0"/>
                         <CheckBox IsChecked="{Binding InHomePosition}" Content="InHomePosition" Margin="6,2,6,0"/>
@@ -73,7 +92,8 @@
             </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <TextBox x:Name="textBoxOperation" Height="20" Grid.ColumnSpan="2"  Grid.Row="2" VerticalAlignment="Top" Margin="0,0,10,0" HorizontalAlignment="Right" Width="420" TextWrapping="Wrap"/>
+        <TextBox x:Name="textBoxOperation" Height="20" Grid.Column="1"  Grid.Row="3" VerticalAlignment="Top" Margin="0,-15,8,0" 
+                 IsReadOnly="True" HorizontalAlignment="Right" Width="430" TextWrapping="Wrap"/>
     </Grid>
 
 </Window>

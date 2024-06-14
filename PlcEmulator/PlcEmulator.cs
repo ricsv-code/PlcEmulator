@@ -172,7 +172,7 @@ namespace PlcEmulatorCore
             string sentData = BitConverter.ToString(response);
 
             _updateSentData?.Invoke($"Sent OP102 response: {sentData}");
-            _updateOperation?.Invoke($"OP102 - 'Move One Motor to Position' received");
+            _updateOperation?.Invoke($"OP102 - {GlobalSettings.NumberOfMotors}'Move One Motor to Position' received");
 
             return response;
         }
@@ -300,7 +300,6 @@ namespace PlcEmulatorCore
 
                 string sentData = BitConverter.ToString(response);
                 _updateSentData?.Invoke($"Sent OP106 response: {sentData}");
-                _updateOperation?.Invoke($"OP106 - 'Get Motor Position' received");
 
                 return response;
             }
@@ -391,7 +390,6 @@ namespace PlcEmulatorCore
 
                 string sentData = BitConverter.ToString(response);
                 _updateSentData?.Invoke($"Sent OP255 response: {sentData}");
-                _updateOperation?.Invoke($"OP255 - 'SYNC' received");
 
                 return response;
             }
