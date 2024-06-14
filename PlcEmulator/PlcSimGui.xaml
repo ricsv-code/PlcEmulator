@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PlcEmulator"
         mc:Ignorable="d"
-        Title="PLC Emulator" Height="650" Width="1100">
+        Title="PLC Emulator" Height="650" Width="1500">
     <Window.DataContext>
         <local:MotorViewModel />
     </Window.DataContext>
@@ -18,7 +18,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="600"/>
         </Grid.ColumnDefinitions>
 
         <TextBlock Margin="10,0,0,0" Height="20" Grid.Column="0" Grid.Row="0" Text="Received:"/>
@@ -45,7 +45,10 @@
                 <RotateTransform x:Name="rotateTransform"/>
             </Image.RenderTransform>
         </Image>
-        <TextBox x:Name="textBoxImageData" Height="20" Width="180" Grid.Column="2" Grid.RowSpan="3" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,160"/>
+        <WrapPanel x:Name="imageContainer" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="2" Grid.RowSpan="3"
+                   ItemHeight="240" ItemWidth="240" Margin="10">
+        </WrapPanel>
+        <TextBox x:Name="textBoxImageData" Height="20" Width="180" Grid.Column="2" Grid.RowSpan="3" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,0"/>
 
         <Button x:Name="buttonStart" Content="Start" HorizontalAlignment="Left" Grid.Row="2" Grid.Column="0" Margin="10,0,0,0" VerticalAlignment="Top" 
                 Width="75" Click="buttonStart_Click"/>

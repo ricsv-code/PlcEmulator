@@ -8,6 +8,9 @@ using PlcEmulator;
 using System.Drawing;
 using System.Windows.Media.Imaging;
 using System.Drawing.Drawing2D;
+using System.Reflection.Metadata;
+using System.Windows.Media;
+using Utilities;
 
 namespace PlcEmulator
 {
@@ -22,6 +25,7 @@ namespace PlcEmulator
         public PlcSimGui()
         {
             InitializeComponent();
+            CreateMotorImages();
             motorImage.Source = new BitmapImage(new Uri("C:\\Users\\risve\\source\\repos\\PlcEmulator\\PlcEmulator\\arrow-right.png"));
         }
         
@@ -94,7 +98,32 @@ namespace PlcEmulator
                 rotateTransform.Angle = angleDegrees;
                 textBoxImageData.Text = ("Rotated: " + presentedDegrees + "°");
             });
+        }
 
+
+        private void CreateMotorImages()
+        {
+            for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
+            {
+                var motorImage = new BitmapImage(new Uri("C:\\Users\\risve\\source\\repos\\PlcEmulator\\PlcEmulator\\arrow-right.png"));
+
+                var image = new System.Windows.Controls.Image();
+                image.Source = motorImage;
+
+                image.Width = 240;
+                image.Height = 240;
+
+                RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
+
+                RotateTransform rotateTransform = new RotateTransform(0);
+                image.RenderTransform = rotateTransform;
+
+                Dispatcher.Invoke(() =>
+                {
+                    imageContainer.Children.Add(image);
+                });
+
+            }
         }
     }
 }
