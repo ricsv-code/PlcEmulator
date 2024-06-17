@@ -9,6 +9,10 @@ using Utilities;
 using System.Security.RightsManagement;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Controls;
+using System.Windows.Shapes;
+using System.Windows.Media;
+using System.Windows.Data;
 
 namespace PlcEmulator
 {
@@ -124,6 +128,39 @@ namespace PlcEmulator
         protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+
+        public StackPanel CreateIndicator(string indicatorName, object source)
+        {
+            TextBlock indicatorTextBlock = new TextBlock
+            {
+                Name = $"{indicatorName}TextBlock",
+                Text = indicatorName
+            };
+
+            Binding binding = new Binding(indicatorName)
+            {
+                Source = source,
+                Converter = new BooleanToBrushConverter()
+            };
+
+            Ellipse indicatorEllipse = new Ellipse
+            {
+                Name = $"{indicatorName}Ellipse",
+                Width = 10,
+                Height = 10,
+            };
+            indicatorEllipse.SetBinding(Ellipse.FillProperty, binding);
+
+            StackPanel indicatorStackPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal
+            };
+
+            indicatorStackPanel.Children.Add(indicatorEllipse);
+            indicatorStackPanel.Children.Add(indicatorTextBlock);
+
+            return indicatorStackPanel;
         }
     }
 }
