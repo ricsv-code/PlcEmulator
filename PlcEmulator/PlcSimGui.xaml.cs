@@ -1,23 +1,12 @@
 ﻿using System.Diagnostics;
-using System.Text;
 using System.Windows;
-using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
 using PlcEmulatorCore;
-using PlcEmulator;
-using System.Drawing;
 using System.Windows.Media.Imaging;
-using System.Drawing.Drawing2D;
-using System.Reflection.Metadata;
-using System.Windows.Data;
 using System.Windows.Media;
 using Utilities;
 using System.Windows.Controls;
-using System.Windows.Media.Media3D;
-using System.IO;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Net.WebRequestMethods;
-using System.Windows.Shapes;
+
 
 namespace PlcEmulator
 {
@@ -35,8 +24,6 @@ namespace PlcEmulator
         private int _currentAngle;
         private int _motorIndex;
         private int _rotationStep;
-
-
 
         public PlcSimGui()
         {
@@ -189,10 +176,10 @@ namespace PlcEmulator
 
             if (Math.Abs(currentAngle - targetAngle) > Tolerance) //AVRUNDNING (ta bort senare)
             {
-                int direction = currentAngle < targetAngle ? 1 : -1; 
+                int direction = currentAngle < targetAngle ? 1 : -1;
                 currentAngle += direction * _rotationStep;
 
-                if ((direction > 0 && currentAngle > targetAngle) || 
+                if ((direction > 0 && currentAngle > targetAngle) ||
                     (direction < 0 && currentAngle < targetAngle))
                 {
                     currentAngle = targetAngle;
@@ -231,12 +218,12 @@ namespace PlcEmulator
         {
             Dispatcher.Invoke(() => //testa ta bort?
             {
-                while (imageContainer.Children.Count > 0) 
+                while (imageContainer.Children.Count > 0)
                 {
                     var child = imageContainer.Children[0];
                     imageContainer.Children.Remove(child);
                 }
-            }); 
+            });
 
             for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
             {
