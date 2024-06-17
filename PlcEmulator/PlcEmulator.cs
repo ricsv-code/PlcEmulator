@@ -40,8 +40,8 @@ namespace PlcEmulatorCore
         {
             while (_isRunning)
             {
-                var client = await _server.AcceptTcpClientAsync();
-                Task.Run(() => HandleClient(client));
+                TcpClient client = _server.AcceptTcpClientAsync().GetAwaiter().GetResult();
+                HandleClient(client);
             }
         }
 

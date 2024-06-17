@@ -15,6 +15,8 @@ namespace Utilities
     {
         private static int _numberOfMotors = 4; //default
 
+        public static event EventHandler NumberOfMotorsChanged = delegate { };
+
         public static int NumberOfMotors
         {
             get { return _numberOfMotors; }
@@ -28,6 +30,6 @@ namespace Utilities
                 }
             }
         }
-        public static event EventHandler NumberOfMotorsChanged;
+        
     }
 }
