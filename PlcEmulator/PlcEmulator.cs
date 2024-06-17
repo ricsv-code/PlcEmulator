@@ -161,18 +161,20 @@ namespace PlcEmulatorCore
 
             motor.SetHiBytePos(request[2]);
             motor.SetLoBytePos(request[3]);
+            motor.SetOperationalSpeed(request[6]);
 
             byte[] response = HandleBaseline(request);
 
             response[2] = motor.GetHiBytePos();
             response[3] = motor.GetLoBytePos();
+            response[6] = motor.GetOperationalSpeed();
             
             response[9] = CalculateChecksum(response);
 
             string sentData = BitConverter.ToString(response);
 
             _updateSentData?.Invoke($"Sent OP102 response: {sentData}");
-            _updateOperation?.Invoke($"OP102 - {GlobalSettings.NumberOfMotors}'Move One Motor to Position' received");
+            _updateOperation?.Invoke($"OP102 - 'Move One Motor to Position' received");
 
             return response;
         }
@@ -214,11 +216,12 @@ namespace PlcEmulatorCore
                 {
                     MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
 
-                    //motor.SetHiBytePos(); sätt dessa till hemkoordinater?? 
-                    //motor.SetLoBytePos();
+                    motor.SetHiBytePos(0); 
+                    motor.SetLoBytePos(0);
+                    motor.SetOperationalSpeed(request[6]);
 
-                    byte value = request[6];
-                    motor.SetOperationalSpeed(value);
+                    _updateImage(request, motorIndex);
+
                 }
 
                 byte[] response = HandleBaseline(request);

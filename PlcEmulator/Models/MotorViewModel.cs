@@ -9,12 +9,14 @@ using Utilities;
 using System.Security.RightsManagement;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
+using System.Drawing;
 
 namespace PlcEmulator
 {
     public class MotorViewModel : INotifyPropertyChanged //binder ui properties till MotorClass instanser
     {
         private MotorClass Motor;
+
 
         public int MotorIndex { get; }
         public MotorViewModel(MotorClass motor, int index)
@@ -98,6 +100,19 @@ namespace PlcEmulator
                 }
             }
         }
+
+        public void UpdateIndicators()
+        {
+            if ((Motor.HiBytePos ?? 0) == 0 && (Motor.LoBytePos ?? 0) == 0)
+            {
+                InHomePosition = true;
+            }
+            else
+            {
+                InHomePosition = false;
+            }
+        }
+
         public bool MotorIsHomed
         {
             get => Motor.MotorIsHomed;
@@ -184,6 +199,7 @@ namespace PlcEmulator
                 {
                     Motor.MachineInMotion = value;
                     OnPropertyChanged(nameof(MachineInMotion));
+                    OnPropertyChanged("BoolFill");
                 }
             }
         }

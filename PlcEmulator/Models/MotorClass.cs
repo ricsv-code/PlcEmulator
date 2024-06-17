@@ -78,6 +78,14 @@ namespace PlcEmulator
             return LoBytePos ?? 0;
         }
 
+        public void HomeChecker()
+        {
+            if (GetHiBytePos() == 0 && GetLoBytePos() == 0)
+            {
+                InHomePosition = true;
+            }
+        }
+
     }
 }
 

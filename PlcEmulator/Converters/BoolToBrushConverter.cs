@@ -6,22 +6,24 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows;
+using System.Windows.Media;
 using PlcEmulator;
 
 namespace Utilities
 {
-    public class IntToBooleanConverter : IValueConverter
+    public class BooleanToBrushConverter : IValueConverter
     {
         public object Convert(object value, Type TargetType, object parameter, CultureInfo culture)
         {
             try
             {
-                if (value == null || parameter == null)
-                    return false;
-                int intValue = (int)value;
-                int targetValue = int.Parse(parameter.ToString());
+                if (value is bool boolValue)
+                {
+                    return boolValue ? Brushes.Green : Brushes.Red;
+                }
 
-                return intValue == targetValue;
+                return Brushes.Transparent;
             }
             catch (Exception e)
             {

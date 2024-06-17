@@ -9,15 +9,18 @@ using System.Drawing;
 using System.Windows.Media.Imaging;
 using System.Drawing.Drawing2D;
 using System.Reflection.Metadata;
+using System.Windows.Data;
 using System.Windows.Media;
 using Utilities;
 using System.Windows.Controls;
 using System.Windows.Media.Media3D;
 using System.IO;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Net.WebRequestMethods;
+using System.Windows.Shapes;
 
 namespace PlcEmulator
 {
-
     public partial class PlcSimGui : Window
     {
         private EmulatorPlc _emulator;
@@ -39,6 +42,7 @@ namespace PlcEmulator
         {
             InitializeComponent();
             CreateMotorImages();
+            buttonStop.IsEnabled = false;
         }
 
 
@@ -47,14 +51,22 @@ namespace PlcEmulator
         {
             if (_isRunning == false)
             {
+                string ipAddress = IpAddressTextBox.Text;
+                int port = int.Parse(PortTextBox.Text);
+
                 _stopwatch = new Stopwatch();
-                _emulator = new EmulatorPlc("127.0.0.1", 502, UpdateReceivedData, UpdateSentData, UpdateOperation, UpdateImage);
+                _emulator = new EmulatorPlc(ipAddress, port, UpdateReceivedData, UpdateSentData, UpdateOperation, UpdateImage);
 
                 _stopwatch.Start();
                 _emulator.Start();
                 _isRunning = true;
 
-                textBoxOperation.Text = $"{GlobalSettings.NumberOfMotors}PLC Emulator started..\r\n";
+                buttonStart.IsEnabled = false;
+                buttonStop.IsEnabled = true;
+                ConnectionIndicator.Fill = System.Windows.Media.Brushes.Green;
+
+
+                textBoxOperation.Text = $"PLC Emulator started..\r\n";
             }
         }
 
@@ -65,6 +77,10 @@ namespace PlcEmulator
                 _stopwatch.Stop();
                 _emulator.Stop();
                 _isRunning = false;
+                buttonStart.IsEnabled = true;
+                buttonStop.IsEnabled = false;
+
+                ConnectionIndicator.Fill = System.Windows.Media.Brushes.Red;
 
                 textBoxOperation.Text = "PLC Emulator stopped..\r\n";
             }
@@ -128,16 +144,17 @@ namespace PlcEmulator
             {
                 var viewModel = DataContext as FrontViewModel;
                 var motorViewModel = viewModel?.Motors[motorIndex];
+
                 if (motorViewModel != null)
                 {
                     int speed = motorViewModel.OperationalSpeed;
-                    _rotationStep = Math.Max(1, speed); //minimum speed om speed=0
+                    _rotationStep = Math.Max(1, speed); //minimum speed om speed=0 ("hoppstorlek")
 
                     if (!_motorTimers.ContainsKey(motorIndex))
                     {
                         var timer = new DispatcherTimer();
-                        timer.Interval = TimeSpan.FromMilliseconds(10);
-                        timer.Tick += (sender, e) => RotateMotor(sender, e, motorIndex);
+                        timer.Interval = TimeSpan.FromMilliseconds(10); //kanske ha speed-variabeln här ist?
+                        timer.Tick += (sender, e) => RotateMotor(sender, e, motorIndex, speed);
                         _motorTimers[motorIndex] = timer;
                     }
 
@@ -153,7 +170,7 @@ namespace PlcEmulator
             });
         }
 
-        private void RotateMotor(object sender, EventArgs e, int motorIndex)
+        private void RotateMotor(object sender, EventArgs e, int motorIndex, int speed)
         {
             var viewModel = DataContext as FrontViewModel;
             var motorViewModel = viewModel?.Motors[motorIndex];
@@ -163,7 +180,7 @@ namespace PlcEmulator
             decimal angleRadians = position / 1000.0m;
             double targetAngle = (double)(angleRadians * (180m / (decimal)Math.PI));
 
-            if (!_currentAngles.ContainsKey(motorIndex))
+            if (!_currentAngles.ContainsKey(motorIndex)) //plåster (ta bort sen??)
             {
                 _currentAngles[motorIndex] = 0;
             }
@@ -179,17 +196,25 @@ namespace PlcEmulator
                     (direction < 0 && currentAngle < targetAngle))
                 {
                     currentAngle = targetAngle;
+                    motorViewModel.UpdateIndicators();
                 }
 
                 Dispatcher.Invoke(() =>
                 {
                     StackPanel stackPanel = imageContainer.Children[motorIndex] as StackPanel;
-                    System.Windows.Controls.Image image = stackPanel.Children[1] as System.Windows.Controls.Image;
+                    StackPanel iStackPanel = stackPanel.Children[1] as StackPanel;
+                    System.Windows.Controls.Image image = iStackPanel.Children[1] as System.Windows.Controls.Image;
 
                     if (image != null && image.RenderTransform is RotateTransform rotateTransform)
                     {
                         rotateTransform.Angle = currentAngle;
-                        textBoxImageData.Text = ("Rotated motor" + (motorIndex + 1) + ": " + currentAngle + "");
+                        textBoxImageData.Text = ("Rotated motor" + (motorIndex + 1) + ": " + (double)currentAngle + "");
+                        TextBlock motorInfoTextBlock = (TextBlock)this.FindName("motorInfoTextBlock");
+                        if (motorInfoTextBlock != null)
+                        {
+                            motorInfoTextBlock.Text = ("Position:" + position + "Speed:" + speed);
+                            motorViewModel.UpdateIndicators();
+                        }
                     }
                 });
 
@@ -198,19 +223,20 @@ namespace PlcEmulator
             else
             {
                 _motorTimers[motorIndex].Stop();
+                motorViewModel.UpdateIndicators();
             }
         }
 
         private void CreateMotorImages()
         {
-            Dispatcher.Invoke(() =>
+            Dispatcher.Invoke(() => //testa ta bort?
             {
-                while (imageContainer.Children.Count > 0)
+                while (imageContainer.Children.Count > 0) 
                 {
                     var child = imageContainer.Children[0];
                     imageContainer.Children.Remove(child);
                 }
-            }); //rensar alla barn innan repopulering
+            }); 
 
             for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
             {
@@ -218,33 +244,215 @@ namespace PlcEmulator
 
                 var image = new System.Windows.Controls.Image();
 
+                var viewModel = DataContext as FrontViewModel;
+                var motorViewModel = viewModel?.Motors[i];
+                if (motorViewModel == null) return;
+
+                motorViewModel.UpdateIndicators();
+
+
                 image.Source = motorImage;
                 {
-                    image.Width = 240;
-                    image.Height = 240;
+                    image.Width = 100;
+                    image.Height = 100;
                     image.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
                 };
 
-                TextBlock textBlock = new TextBlock();
+                TextBlock mTextBlock = new TextBlock();
                 {
-                    textBlock.Text = $"Motor: {i + 1}";
-                    textBlock.HorizontalAlignment = HorizontalAlignment.Center;
-                    textBlock.VerticalAlignment = VerticalAlignment.Top;
-                    textBlock.Height = 20;
+                    mTextBlock.Text = $"Motor: {i + 1}";
+                    mTextBlock.HorizontalAlignment = HorizontalAlignment.Center;
+                    mTextBlock.VerticalAlignment = VerticalAlignment.Top;
+                    mTextBlock.Height = 20;
                 };
 
-                StackPanel stackPanel = new StackPanel();
+                TextBlock iTextBlock = new TextBlock();
                 {
-                    stackPanel.Children.Add(textBlock);
-                    stackPanel.Children.Add(image);
-                }
+                    iTextBlock.Name = "motorInfoTextBlock";
+                    iTextBlock.Text = "TestText";
+                    iTextBlock.HorizontalAlignment = HorizontalAlignment.Center;
+                    iTextBlock.VerticalAlignment = VerticalAlignment.Bottom;
+                    iTextBlock.Height = 20;
+                };
+
+                //Bindings
+                Binding inMotionBinding = new Binding("MachineInMotion");
+                inMotionBinding.Source = motorViewModel;
+                inMotionBinding.Converter = new BooleanToBrushConverter();
+
+                Binding inHomeBinding = new Binding("InHomePosition");
+                inHomeBinding.Source = motorViewModel;
+                inHomeBinding.Converter = new BooleanToBrushConverter();
+
+                //MachineInMotion
+                TextBlock machineInMotionTextBlock = new TextBlock();
+                {
+                    machineInMotionTextBlock.Name = "machineInMotionTextBlock";
+                    machineInMotionTextBlock.Text = "MachineInMotion";
+                };
+
+                Ellipse machineInMotionEllipse = new Ellipse();
+                {
+                    machineInMotionEllipse.Name = "machineInMotionEllipse";
+                    machineInMotionEllipse.SetBinding(Ellipse.FillProperty, inMotionBinding);
+                    machineInMotionEllipse.Width = 10;
+                    machineInMotionEllipse.Height = 10;
+                };
+
+                StackPanel machineInMotionStackPanel = new StackPanel();
+                {
+                    machineInMotionStackPanel.Orientation = Orientation.Horizontal;
+                    machineInMotionStackPanel.Children.Add(machineInMotionEllipse);
+                    machineInMotionStackPanel.Children.Add(machineInMotionTextBlock);
+                };
+                //MachineStill
+                TextBlock machineStillTextBlock = new TextBlock();
+                {
+                    machineStillTextBlock.Name = "machineStillTextBlock";
+                    machineStillTextBlock.Text = "MachineStill";
+                };
+
+                Ellipse machineStillEllipse = new Ellipse();
+                {
+                    machineStillEllipse.Name = "machineStillEllipse";
+                    machineStillEllipse.Fill = new SolidColorBrush(Colors.Red);
+                    machineStillEllipse.Width = 10;
+                    machineStillEllipse.Height = 10;
+                };
+
+                StackPanel machineStillStackPanel = new StackPanel();
+                {
+                    machineStillStackPanel.Orientation = Orientation.Horizontal;
+                    machineStillStackPanel.Children.Add(machineStillEllipse);
+                    machineStillStackPanel.Children.Add(machineStillTextBlock);
+                };
+                //MachineNeedsHoming
+                TextBlock machineNeedsHomingTextBlock = new TextBlock();
+                {
+                    machineNeedsHomingTextBlock.Name = "machineNeedsHomingTextBlock";
+                    machineNeedsHomingTextBlock.Text = "MachineNeedsHoming";
+                };
+
+                Ellipse machineNeedsHomingEllipse = new Ellipse();
+                {
+                    machineNeedsHomingEllipse.Name = "machineNeedsHomingEllipse";
+                    machineNeedsHomingEllipse.Fill = new SolidColorBrush(Colors.Red);
+                    machineNeedsHomingEllipse.Width = 10;
+                    machineNeedsHomingEllipse.Height = 10;
+                };
+
+                StackPanel machineNeedsHomingStackPanel = new StackPanel();
+                {
+                    machineNeedsHomingStackPanel.Orientation = Orientation.Horizontal;
+                    machineNeedsHomingStackPanel.Children.Add(machineNeedsHomingEllipse);
+                    machineNeedsHomingStackPanel.Children.Add(machineNeedsHomingTextBlock);
+                };
+
+                //machineInCenter
+                TextBlock machineInCenterTextBlock = new TextBlock();
+                {
+                    machineInCenterTextBlock.Name = "machineInCenterTextBlock";
+                    machineInCenterTextBlock.Text = "MachineInCenter";
+                };
+
+                Ellipse machineInCenterEllipse = new Ellipse();
+                {
+                    machineInCenterEllipse.Name = "machineInCenterEllipse";
+                    machineInCenterEllipse.Fill = new SolidColorBrush(Colors.Red);
+                    machineInCenterEllipse.Width = 10;
+                    machineInCenterEllipse.Height = 10;
+                };
+
+                StackPanel machineInCenterStackPanel = new StackPanel();
+                {
+                    machineInCenterStackPanel.Orientation = Orientation.Horizontal;
+                    machineInCenterStackPanel.Children.Add(machineInCenterEllipse);
+                    machineInCenterStackPanel.Children.Add(machineInCenterTextBlock);
+                };
+
+                //MachineInHome
+                TextBlock machineInHomeTextBlock = new TextBlock();
+                {
+                    machineInHomeTextBlock.Name = "machineInHomeTextBlock";
+                    machineInHomeTextBlock.Text = "MachineInHome";
+
+                };
+
+                Ellipse machineInHomeEllipse = new Ellipse();
+                {
+                    machineInHomeEllipse.Name = "machineInHomeEllipse";
+                    machineInHomeEllipse.SetBinding(Ellipse.FillProperty, inHomeBinding);
+                    machineInHomeEllipse.Width = 10;
+                    machineInHomeEllipse.Height = 10;
+                };
+
+                StackPanel machineInHomeStackPanel = new StackPanel();
+                {
+                    machineInHomeStackPanel.Orientation = Orientation.Horizontal;
+                    machineInHomeStackPanel.Children.Add(machineInHomeEllipse);
+                    machineInHomeStackPanel.Children.Add(machineInHomeTextBlock);
+                };
+
+                //EButtonPressed
+                TextBlock eButtonPressedTextBlock = new TextBlock();
+                {
+                    eButtonPressedTextBlock.Name = "eButtonPressedTextBlock";
+                    eButtonPressedTextBlock.Text = "EButtonPressed";
+                };
+
+                Ellipse eButtonPressedEllipse = new Ellipse();
+                {
+                    eButtonPressedEllipse.Name = "eButtonPressedEllipse";
+                    eButtonPressedEllipse.Fill = new SolidColorBrush(Colors.Red);
+                    eButtonPressedEllipse.Width = 10;
+                    eButtonPressedEllipse.Height = 10;
+                };
+
+                StackPanel eButtonPressedStackPanel = new StackPanel();
+                {
+                    eButtonPressedStackPanel.Orientation = Orientation.Horizontal;
+                    eButtonPressedStackPanel.Children.Add(eButtonPressedEllipse);
+                    eButtonPressedStackPanel.Children.Add(eButtonPressedTextBlock);
+                };
+                //Flytta ut de ovan??
+
+
+                StackPanel statusStackPanel = new StackPanel();
+                {
+                    statusStackPanel.Orientation = Orientation.Vertical;
+                    statusStackPanel.Margin = new Thickness(0, 0, 10, 0);
+                    statusStackPanel.Children.Add(machineInMotionStackPanel);
+                    statusStackPanel.Children.Add(machineStillStackPanel);
+                    statusStackPanel.Children.Add(machineNeedsHomingStackPanel);
+                    statusStackPanel.Children.Add(machineInCenterStackPanel);
+                    statusStackPanel.Children.Add(machineInHomeStackPanel);
+                    statusStackPanel.Children.Add(eButtonPressedStackPanel);
+                };
+
+                StackPanel horizontalStackPanel = new StackPanel();
+                {
+                    horizontalStackPanel.Orientation = Orientation.Horizontal;
+                    horizontalStackPanel.Children.Add(statusStackPanel);
+                    horizontalStackPanel.Children.Add(image);
+                };
+
+                StackPanel verticalStackPanel = new StackPanel();
+                {
+
+                    verticalStackPanel.Orientation = Orientation.Vertical;
+                    verticalStackPanel.Children.Add(mTextBlock);
+                    verticalStackPanel.Children.Add(horizontalStackPanel);
+                    verticalStackPanel.Children.Add(iTextBlock);
+                };
+
+
 
                 RotateTransform rotateTransform = new RotateTransform(0);
                 image.RenderTransform = rotateTransform;
 
                 Dispatcher.Invoke(() =>
                 {
-                    imageContainer.Children.Add(stackPanel);
+                    imageContainer.Children.Add(verticalStackPanel);
                 });
 
             }
