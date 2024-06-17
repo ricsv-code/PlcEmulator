@@ -208,7 +208,7 @@ namespace PlcEmulator
                     if (image != null && image.RenderTransform is RotateTransform rotateTransform)
                     {
                         rotateTransform.Angle = currentAngle;
-                        textBoxImageData.Text = ("Rotated motor" + (motorIndex + 1) + ": " + (double)currentAngle + "");
+                        textBoxImageData.Text = ("Rotated motor " + (motorIndex + 1) + ": " + (double)currentAngle + "");
                         TextBlock motorInfoTextBlock = (TextBlock)this.FindName("motorInfoTextBlock");
                         if (motorInfoTextBlock != null)
                         {

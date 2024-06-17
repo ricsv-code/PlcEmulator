@@ -1,0 +1,44 @@
+﻿<Window x:Class="PclTester.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PclTester"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="670" Width="600">
+    <Grid>
+        <StackPanel>
+            <TextBlock Text="PLC Tester" FontSize="20" HorizontalAlignment="Center" Margin="10"/>
+
+            <StackPanel Orientation="Horizontal" Margin="10">
+                <TextBlock Text="PLC IP:" VerticalAlignment="Center" Margin="5"/>
+                <TextBox x:Name="IpAddressTextBox" Text="127.0.0.1" Width="120" Margin="5"/>
+                <TextBlock Text="Port:" VerticalAlignment="Center" Margin="5"/>
+                <TextBox x:Name="PortTextBox" Text="502" Width="50" Margin="5"/>
+                <Ellipse x:Name="ConnectionIndicator" Width="10" Height="10" Fill="Red" Margin="10"/>
+            </StackPanel>
+            <Button x:Name="ConnectButton" Content="Connect" Click="ConnectButton_Click" Margin="10,10,10,0"/>
+            <Button x:Name="DisconnectButton" Content="Disconnect" Click="DisconnectButton_Click" Margin="10,5,10,0"/>
+
+            <TextBlock Text="OP102 - Move One Motor to Position" FontWeight="Bold" Margin="10"/>
+            <StackPanel Orientation="Horizontal" Margin="10">
+                <TextBlock Text="Motor Index:" VerticalAlignment="Center" Margin="5"/>
+                <TextBox x:Name="Op102MotorIndexTextBox" Width="50" Margin="5"/>
+                <TextBlock Text="Position:" VerticalAlignment="Center" Margin="5"/>
+                <TextBox x:Name="Op102PositionTextBox" Width="100" Margin="5"/>
+                <Button Content="Send OP102" Click="SendOp102Button_Click" Margin="5"/>
+            </StackPanel>
+
+            <TextBlock Text="OP103 - Go To Center" FontWeight="Bold" Margin="10"/>
+            <StackPanel Orientation="Horizontal" Margin="10">
+                <Button Content="SendOP103" Click="SendOp103Button_Click" Margin="5"/>
+            </StackPanel>
+
+            <TextBlock Text="OP105 - Homing" FontWeight="Bold" Margin="10"/>
+            <StackPanel Orientation="Horizontal" Margin="10">
+                <Button Content="Send OP105" Click="SendOp105Button_Click" Margin="5"/>
+            </StackPanel>
+            <TextBox x:Name="OutputTextBox" IsReadOnly="True" Margin="10" Height="200" VerticalScrollBarVisibility="Auto"/>
+        </StackPanel>
+    </Grid>
+</Window>

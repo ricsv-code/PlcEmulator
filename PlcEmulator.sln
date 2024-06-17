@@ -5,7 +5,7 @@ VisualStudioVersion = 17.10.34928.147
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlcEmulator", "PlcEmulator\PlcEmulator.csproj", "{EB1A0971-ECCF-4A26-B2F9-0EA934BD874F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlcTester", "..\PlcTester\PlcTester\PlcTester.csproj", "{C826748B-5325-483C-8CBC-8F6C1A250E25}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlcTester", "PlcTester\PlcTester.csproj", "{C826748B-5325-483C-8CBC-8F6C1A250E25}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
