@@ -165,9 +165,9 @@ namespace PlcEmulatorCore
 
             byte[] response = HandleBaseline(request);
 
-            response[2] = motor.GetHiBytePos();
-            response[3] = motor.GetLoBytePos();
-            response[6] = motor.GetOperationalSpeed();
+            //response[2] = motor.GetHiBytePos();
+            //response[3] = motor.GetLoBytePos();
+            //response[6] = motor.GetOperationalSpeed();
             
             response[9] = CalculateChecksum(response);
 

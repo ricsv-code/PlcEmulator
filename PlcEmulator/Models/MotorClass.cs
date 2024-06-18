@@ -86,9 +86,6 @@ namespace PlcEmulator
             }
         }
 
-
-
-
         public void SetOperationalSpeed(byte value)
         {
             OperationalSpeed = value;

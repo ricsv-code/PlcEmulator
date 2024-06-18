@@ -18,7 +18,6 @@ namespace PlcEmulator
 
         private Dictionary<int, DispatcherTimer> _motorTimers = new Dictionary<int, DispatcherTimer>();
         private Dictionary<int, double> _currentAngles = new Dictionary<int, double>();
-        private const double Tolerance = 0.1; //avrundningsfel
 
         private int _targetAngle;
         private int _currentAngle;
@@ -147,15 +146,20 @@ namespace PlcEmulator
                 if (motorViewModel != null)
                 {
                     int speed = motorViewModel.OperationalSpeed;
-                    _rotationStep = Math.Max(1, speed); //minimum speed om speed=0 ("hoppstorlek")
+                    int intervalSpeed = 110 - speed; //justera efter hastighet
+                    _rotationStep = 5; //5 grader i taget
 
-                    if (!_motorTimers.ContainsKey(motorIndex))
+                    if (_motorTimers.TryGetValue(motorIndex, out var existingTimer)) //döda timers
                     {
-                        var timer = new DispatcherTimer();
-                        timer.Interval = TimeSpan.FromMilliseconds(10); //kanske ha speed-variabeln här ist?
-                        timer.Tick += (sender, e) => RotateMotor(sender, e, motorIndex, speed);
-                        _motorTimers[motorIndex] = timer;
+                        existingTimer.Stop();
+                        _motorTimers.Remove(motorIndex);
                     }
+
+                    var timer = new DispatcherTimer();
+                    timer.Interval = TimeSpan.FromMilliseconds(intervalSpeed); //speed
+                    timer.Tick += (sender, e) => RotateMotor(sender, e, motorIndex, speed);
+                    _motorTimers[motorIndex] = timer;
+
 
                     if (!_motorTimers[motorIndex].IsEnabled)
                     {
@@ -186,12 +190,12 @@ namespace PlcEmulator
 
             double currentAngle = _currentAngles[motorIndex];
 
-            if (Math.Abs(currentAngle - targetAngle) > Tolerance) //AVRUNDNING (ta bort senare)
+            if (Math.Abs(currentAngle - targetAngle) > 0) //AVRUNDNING borttagen
             {
                 int direction = currentAngle < targetAngle ? 1 : -1;
                 currentAngle += direction * _rotationStep;
 
-                if ((direction > 0 && currentAngle > targetAngle) ||
+                if ((direction > 0 && currentAngle > targetAngle) || //overshoot protection
                     (direction < 0 && currentAngle < targetAngle))
                 {
                     currentAngle = targetAngle;
@@ -207,13 +211,7 @@ namespace PlcEmulator
                     if (image != null && image.RenderTransform is RotateTransform rotateTransform)
                     {
                         rotateTransform.Angle = currentAngle;
-                        textBoxImageData.Text = ("Rotated motor " + (motorIndex + 1) + ": " + (double)currentAngle + "");
-                        TextBlock motorInfoTextBlock = (TextBlock)this.FindName("motorInfoTextBlock");
-                        if (motorInfoTextBlock != null)
-                        {
-                            motorInfoTextBlock.Text = ("Position:" + position + "Speed:" + speed);
-                            motorViewModel.UpdateIndicators();
-                        }
+                        textBoxImageData.Text = ("Rotated motor " + (motorIndex + 1) + ": " + (int)currentAngle + "°");
                     }
                 });
 
