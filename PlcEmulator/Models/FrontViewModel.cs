@@ -162,6 +162,52 @@ namespace PlcEmulator
 
             return indicatorStackPanel;
         }
+
+        public StackPanel CreateInfoText(string speed, string position, object source)
+        {
+            Binding speedBinding = new Binding(speed)
+            {
+                Source = source,
+            };
+            Binding posBinding = new Binding(position)
+            {
+                Source = source,
+            };
+
+
+            TextBlock speedTextBlock = new TextBlock
+            {
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+                VerticalAlignment = System.Windows.VerticalAlignment.Center,
+                Height = 20,
+            };
+            speedBinding.StringFormat = "Speed: {0}";
+            speedTextBlock.SetBinding(TextBlock.TextProperty, speedBinding);
+            
+
+            TextBlock positionTextBlock = new TextBlock
+            {
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+                VerticalAlignment = System.Windows.VerticalAlignment.Center,
+                Height = 20,
+                Margin = new System.Windows.Thickness(10,0,0,0)
+            };
+            posBinding.StringFormat = "Position: {0}";
+            positionTextBlock.SetBinding(TextBlock.TextProperty, posBinding);
+
+
+            StackPanel infoStackPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Height = 20,
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+            };
+
+            infoStackPanel.Children.Add(speedTextBlock);
+            infoStackPanel.Children.Add(positionTextBlock);
+
+            return infoStackPanel;
+        }
     }
 }
 

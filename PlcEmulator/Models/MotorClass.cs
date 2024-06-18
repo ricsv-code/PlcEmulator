@@ -12,14 +12,14 @@ using System.Runtime.CompilerServices;
 
 namespace PlcEmulator
 {
-    public class MotorClass
+    public class MotorClass : INotifyPropertyChanged
     {
         //Machine Status booleans
         public bool Reserved { get; set; }
         public bool Error { get; set; }
         public bool InMinPosition { get; set; }
         public bool InMaxPosition { get; set; }
-        public bool InCentredPosition { get; set; }
+        public bool InCenteredPosition { get; set; }
         public bool InHomePosition { get; set; }
         public bool MotorIsHomed { get; set; }
         public bool MotorInProgress { get; set; }
@@ -41,11 +41,53 @@ namespace PlcEmulator
         //
 
 
-        public byte? OperationalSpeed { get; set; }
+        public byte? _operationalSpeed { get; set; }
 
-        public byte? HiBytePos { get; set; }
+        public byte? _hiBytePos { get; set; }
 
-        public byte? LoBytePos { get; set; }
+        public byte? _loBytePos { get; set; }
+
+        public byte? OperationalSpeed
+        {
+            get => _operationalSpeed;
+            set
+            {
+                if (_operationalSpeed != value)
+                {
+                    _operationalSpeed = value;
+                    OnPropertyChanged(nameof(OperationalSpeed));
+                }
+            }
+        }
+
+        public byte? HiBytePos
+        {
+            get => _hiBytePos;
+            set
+            {
+                if (_hiBytePos != value)
+                {
+                    _hiBytePos = value;
+                    OnPropertyChanged(nameof(HiBytePos));
+                }
+            }
+        }
+
+        public byte? LoBytePos
+        {
+            get => _loBytePos;
+            set
+            {
+                if (_loBytePos != value)
+                {
+                    _loBytePos = value;
+                    OnPropertyChanged(nameof(LoBytePos));
+                }
+            }
+        }
+
+
+
 
         public void SetOperationalSpeed(byte value)
         {
@@ -84,6 +126,13 @@ namespace PlcEmulator
             {
                 InHomePosition = true;
             }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
     }

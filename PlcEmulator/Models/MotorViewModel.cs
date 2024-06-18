@@ -23,6 +23,21 @@ namespace PlcEmulator
         {
             Motor = motor;
             MotorIndex = (index + 1);
+            Motor.PropertyChanged += Motor_PropertyChanged;
+        }
+
+        private void Motor_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(MotorClass.OperationalSpeed))
+            {
+                OnPropertyChanged(nameof(OperationalSpeed));
+            }
+            if (e.PropertyName == nameof(MotorClass.HiBytePos) || e.PropertyName == nameof(MotorClass.LoBytePos))
+            {
+                OnPropertyChanged(nameof(HiBytePos));
+                OnPropertyChanged(nameof(LoBytePos));
+                OnPropertyChanged(nameof(AbsolutePosition));
+            }
         }
         public MotorClass motor
         {
@@ -76,15 +91,15 @@ namespace PlcEmulator
                 }
             }
         }
-        public bool InCentredPosition
+        public bool InCenteredPosition
         {
-            get => Motor.InCentredPosition;
+            get => Motor.InCenteredPosition;
             set
             {
-                if (Motor.InCentredPosition != value)
+                if (Motor.InCenteredPosition != value)
                 {
-                    Motor.InCentredPosition = value;
-                    OnPropertyChanged(nameof(InCentredPosition));
+                    Motor.InCenteredPosition = value;
+                    OnPropertyChanged(nameof(InCenteredPosition));
                 }
             }
         }
@@ -268,44 +283,28 @@ namespace PlcEmulator
                 }
             }
         }
-        public byte OperationalSpeed
+        public byte OperationalSpeed => Motor.OperationalSpeed ?? 0;
+
+        public byte HiBytePos => Motor.HiBytePos ?? 0;
+
+        public byte LoBytePos => Motor.LoBytePos ?? 0;
+
+        public int AbsolutePosition
         {
-            get => Motor.OperationalSpeed ?? 0;
-            set
+            get
             {
-                if (Motor.OperationalSpeed != value)
+                if (Motor.HiBytePos.HasValue && Motor.LoBytePos.HasValue)
                 {
-                    Motor.OperationalSpeed = value;
-                    OnPropertyChanged(nameof(OperationalSpeed));
+                    return (int)((Motor.HiBytePos.Value << 8) | Motor.LoBytePos.Value);
+                }
+                else
+                {
+                    return 0; 
                 }
             }
         }
 
-        public byte HiBytePos
-        {
-            get => Motor.HiBytePos ?? 0;
-            set
-            {
-                if (Motor.HiBytePos != value)
-                {
-                    Motor.HiBytePos = value;
-                    OnPropertyChanged(nameof(HiBytePos));
-                }
-            }
-        }
 
-        public byte LoBytePos
-        {
-            get => Motor.LoBytePos ?? 0;
-            set
-            {
-                if (Motor.LoBytePos != value)
-                {
-                    Motor.LoBytePos = value;
-                    OnPropertyChanged(nameof(LoBytePos));
-                }
-            }
-        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

@@ -157,11 +157,11 @@ namespace PlcEmulatorCore
 
             MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
 
-            _updateImage(request, motorIndex);
-
             motor.SetHiBytePos(request[2]);
             motor.SetLoBytePos(request[3]);
             motor.SetOperationalSpeed(request[6]);
+
+            _updateImage(request, motorIndex);
 
             byte[] response = HandleBaseline(request);
 
@@ -188,21 +188,23 @@ namespace PlcEmulatorCore
                 {
                     MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
 
-                    //flytta dessa, endast ett svar
-
+                    motor.SetHiBytePos(0);
+                    motor.SetLoBytePos(0);
                     motor.SetOperationalSpeed(request[6]);
 
-                    byte[] response = HandleBaseline(request);
+                    _updateImage(request, motorIndex);
 
-                    response[6] = motor.GetOperationalSpeed();
-                    response[9] = CalculateChecksum(response);
-
-                    string sentData = BitConverter.ToString(response);
-                    _updateSentData?.Invoke($"Sent OP103 response: {sentData}");
-                    _updateOperation?.Invoke($"OP103 - 'Go to Center' received");
-
-                    return response;
                 }
+
+                byte[] response = HandleBaseline(request);
+                response[9] = CalculateChecksum(response);
+
+                string sentData = BitConverter.ToString(response);
+                _updateSentData?.Invoke($"Sent OP103 response: {sentData}");
+                _updateOperation?.Invoke($"OP103 - 'Go to Center' received");
+
+                return response;
+
             }
             return request;
         }
@@ -282,7 +284,7 @@ namespace PlcEmulatorCore
                     result[0] |= 1 << 1;
                 if (motor.InHomePosition)
                     result[0] |= 1 << 2;
-                if (motor.InCentredPosition)
+                if (motor.InCenteredPosition)
                     result[0] |= 1 << 3;
                 if (motor.InMaxPosition)
                     result[0] |= 1 << 4;
@@ -359,7 +361,7 @@ namespace PlcEmulatorCore
                         mStatus[0] |= 1 << 1;
                     if (motor.MachineNeedsHoming)
                         mStatus[0] |= 1 << 2;
-                    if (motor.InCentredPosition) //Machine in Center?
+                    if (motor.InCenteredPosition) //Machine in Center?
                         mStatus[0] |= 1 << 3;
                     if (motor.InHomePosition) //Machine in Home?
                         mStatus[0] |= 1 << 4;

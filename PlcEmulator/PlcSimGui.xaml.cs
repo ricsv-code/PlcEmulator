@@ -32,44 +32,56 @@ namespace PlcEmulator
             buttonStop.IsEnabled = false;
         }
 
-
-
         private void buttonStart_Click(object sender, RoutedEventArgs e)
         {
-            if (_isRunning == false)
+            try
             {
-                string ipAddress = IpAddressTextBox.Text;
-                int port = int.Parse(PortTextBox.Text);
+                if (_isRunning == false)
+                {
+                    string ipAddress = IpAddressTextBox.Text;
+                    int port = int.Parse(PortTextBox.Text);
 
-                _stopwatch = new Stopwatch();
-                _emulator = new EmulatorPlc(ipAddress, port, UpdateReceivedData, UpdateSentData, UpdateOperation, UpdateImage);
+                    _stopwatch = new Stopwatch();
+                    _emulator = new EmulatorPlc(ipAddress, port, UpdateReceivedData, UpdateSentData, UpdateOperation, UpdateImage);
 
-                _stopwatch.Start();
-                _emulator.Start();
-                _isRunning = true;
+                    _stopwatch.Start();
+                    _emulator.Start();
+                    _isRunning = true;
 
-                buttonStart.IsEnabled = false;
-                buttonStop.IsEnabled = true;
-                ConnectionIndicator.Fill = System.Windows.Media.Brushes.Green;
+                    buttonStart.IsEnabled = false;
+                    buttonStop.IsEnabled = true;
+                    ConnectionIndicator.Fill = System.Windows.Media.Brushes.Green;
 
-
-                textBoxOperation.Text = $"PLC Emulator started..\r\n";
+                    textBoxOperation.Text = $"PLC Emulator started..\r\n";
+                }
             }
+            catch (Exception ex)
+            {
+                textBoxReceivedData.AppendText($"Error: {ex.Message}$\r\n");
+            }
+
         }
 
         private void buttonStop_Click(object sender, RoutedEventArgs e)
         {
-            if (_emulator != null)
+            try
             {
-                _stopwatch.Stop();
-                _emulator.Stop();
-                _isRunning = false;
-                buttonStart.IsEnabled = true;
-                buttonStop.IsEnabled = false;
+                if (_emulator != null)
+                {
+                    _stopwatch.Stop();
+                    _emulator.Stop();
+                    _isRunning = false;
+                    buttonStart.IsEnabled = true;
+                    buttonStop.IsEnabled = false;
 
-                ConnectionIndicator.Fill = System.Windows.Media.Brushes.Red;
+                    ConnectionIndicator.Fill = System.Windows.Media.Brushes.Red;
 
-                textBoxOperation.Text = "PLC Emulator stopped..\r\n";
+                    textBoxOperation.Text = "PLC Emulator stopped..\r\n";
+                }
+            }
+            catch (Exception ex)
+            {
+                textBoxReceivedData.AppendText($"Error: {ex.Message}$\r\n");
             }
         }
 
@@ -216,7 +228,7 @@ namespace PlcEmulator
 
         private void CreateMotorImages()
         {
-            Dispatcher.Invoke(() => //testa ta bort?
+            Dispatcher.Invoke(() => //måste vara kvar
             {
                 while (imageContainer.Children.Count > 0)
                 {
@@ -253,24 +265,16 @@ namespace PlcEmulator
                     mTextBlock.Height = 20;
                 };
 
-                TextBlock iTextBlock = new TextBlock();
-                {
-                    iTextBlock.Name = "motorInfoTextBlock";
-                    iTextBlock.Text = "TestText";
-                    iTextBlock.HorizontalAlignment = HorizontalAlignment.Center;
-                    iTextBlock.VerticalAlignment = VerticalAlignment.Bottom;
-                    iTextBlock.Height = 20;
-                };
+
+                var iStackPanel = viewModel.CreateInfoText("OperationalSpeed", "AbsolutePosition", motorViewModel);
 
                 //Skapa indicators med bindings
                 var machineInMotionStackPanel = viewModel.CreateIndicator("MachineInMotion", motorViewModel);
                 var machineStillStackPanel = viewModel.CreateIndicator("MachineStill", motorViewModel);
                 var machineNeedsHomingStackPanel = viewModel.CreateIndicator("MachineNeedsHoming", motorViewModel);
-                var machineInCenterStackPanel = viewModel.CreateIndicator("InCentredPosition", motorViewModel);
+                var machineInCenterStackPanel = viewModel.CreateIndicator("InCenteredPosition", motorViewModel);
                 var machineInHomeStackPanel = viewModel.CreateIndicator("InHomePosition", motorViewModel);
                 var eButtonPressedStackPanel = viewModel.CreateIndicator("EStop", motorViewModel);
-
-                //Flytta ut de ovan??
 
 
                 StackPanel statusStackPanel = new StackPanel();
@@ -298,7 +302,7 @@ namespace PlcEmulator
                     verticalStackPanel.Orientation = Orientation.Vertical;
                     verticalStackPanel.Children.Add(mTextBlock);
                     verticalStackPanel.Children.Add(horizontalStackPanel);
-                    verticalStackPanel.Children.Add(iTextBlock);
+                    verticalStackPanel.Children.Add(iStackPanel);
                 };
 
 
