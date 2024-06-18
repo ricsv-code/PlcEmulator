@@ -73,7 +73,48 @@ namespace PclTester
                 OutputTextBox.AppendText($"Error: {ex.Message}\r\n");
             }
         }
-        private async void SendOp102Button_Click(object sender, RoutedEventArgs e)
+
+        private async void SendOp100Button_Click(object sender, RoutedEventArgs e) //flytta relativt
+        {
+            byte motorIndex = byte.Parse(Op100MotorIndexTextBox.Text);
+            int position = int.Parse(Op100PositionTextBox.Text);
+            int speed = int.Parse(Op100SpeedTextBox.Text);
+            if (motorIndex > 9 || motorIndex < 1)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    OutputTextBox.AppendText($"Motor Index can only be between 1 and 9.");
+                });
+                return;
+            }
+            if (speed > 100 || speed < 0)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    OutputTextBox.AppendText($"Speed can only be between 0 and 100.");
+                });
+                return;
+            }
+
+            byte[] request = CreateRequest(100);
+            request[1] = motorIndex;
+
+            request[2] = (byte)(position >> 8); //hiByte
+            request[3] = (byte)(position & 0xff); //loByte
+
+            request[6] = (byte)speed;
+
+            request[9] = CalculateChecksum(request);
+
+
+            await _stream.WriteAsync(request, 0, request.Length);
+
+            Dispatcher.Invoke(() =>
+            {
+                OutputTextBox.AppendText($"Sent OP100: Motor Index={motorIndex}, Position={position}\r\n");
+            });
+        }
+        private async void SendOp102Button_Click(object sender, RoutedEventArgs e) //flytta
         {
             byte motorIndex = byte.Parse(Op102MotorIndexTextBox.Text);
             int position = int.Parse(Op102PositionTextBox.Text);
@@ -95,19 +136,7 @@ namespace PclTester
                 return;
             }
 
-            byte[] signal = CreateOp102Signal(motorIndex, position, speed);
-            await _stream.WriteAsync(signal, 0, signal.Length);
-
-            Dispatcher.Invoke(() =>
-            {
-                OutputTextBox.AppendText($"Sent OP102 signal: Motor Index={motorIndex}, Position={position}\r\n");
-            });
-        }
-
-        private byte[] CreateOp102Signal(byte motorIndex, int position, int speed)
-        {
-            byte[] request = new byte[10];
-            request[0] = 102;
+            byte[] request = CreateRequest(102);
             request[1] = motorIndex;
 
             request[2] = (byte)(position >> 8); //hiByte
@@ -117,46 +146,58 @@ namespace PclTester
 
             request[9] = CalculateChecksum(request);
 
-            return request;
-        }
 
-        private async void SendOp103Button_Click(object sender, RoutedEventArgs e)
-        {
-            byte[] signal = CreateSimpleSignal(103);
-            await _stream.WriteAsync(signal, 0, signal.Length);
+            await _stream.WriteAsync(request, 0, request.Length);
 
             Dispatcher.Invoke(() =>
             {
-                OutputTextBox.AppendText($"Sent OP103 signal\r\n");
+                OutputTextBox.AppendText($"Sent OP102: Motor Index={motorIndex}, Position={position}\r\n");
+            });
+        }
+
+        private async void SendOp103Button_Click(object sender, RoutedEventArgs e) //go to center
+        {
+            int speed = int.Parse(Op103SpeedTextBox.Text);
+            byte[] request = CreateRequest(103);
+            request[6] = (byte)speed;
+            await _stream.WriteAsync(request, 0, request.Length);
+
+            Dispatcher.Invoke(() =>
+            {
+                OutputTextBox.AppendText($"Sent OP103\r\n");
             });
         }
 
         private async void SendOp104Button_Click(object sender, RoutedEventArgs e)
         {
-            byte[] signal = CreateSimpleSignal(104);
-            await _stream.WriteAsync(signal, 0, signal.Length);
+
+            int speed = int.Parse(Op104SpeedTextBox.Text);
+            byte[] request = CreateRequest(104);
+            request[6] = (byte)speed;
+            await _stream.WriteAsync(request, 0, request.Length);
 
             Dispatcher.Invoke(() =>
             {
-                OutputTextBox.AppendText($"Sent OP104 Signal\r\n");
+                OutputTextBox.AppendText($"Sent OP104\r\n");
             });
         }
 
-        private async void SendOp105Button_Click(object sender, RoutedEventArgs e)
+        private async void SendOp105Button_Click(object sender, RoutedEventArgs e) //homing
         {
-            byte[] signal = CreateSimpleSignal(105);
-            await _stream.WriteAsync(signal, 0, signal.Length);
+            byte[] request = CreateRequest(105);
+            await _stream.WriteAsync(request, 0, request.Length);
 
             Dispatcher.Invoke(() =>
             {
-                OutputTextBox.AppendText($"Sent OP105 signal\r\n");
+                OutputTextBox.AppendText($"Sent OP105\r\n");
             });
         }
 
-        private byte[] CreateSimpleSignal(byte opcode)
+        private byte[] CreateRequest(byte opcode)
         {
             byte[] request = new byte[10];
             request[0] = opcode;
+            request[8] = (byte)(DateTime.Now.Ticks & 0xFF);
             request[9] = CalculateChecksum(request);
             return request;
         }

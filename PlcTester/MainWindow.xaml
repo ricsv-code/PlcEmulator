@@ -20,6 +20,17 @@
             <Button x:Name="ConnectButton" Content="Connect" Click="ConnectButton_Click" Margin="10,10,10,0"/>
             <Button x:Name="DisconnectButton" Content="Disconnect" Click="DisconnectButton_Click" Margin="10,5,10,0"/>
 
+            <TextBlock Text="OP100 - Move One Motor Relatively" FontWeight="Bold" Margin="10"/>
+            <StackPanel Orientation="Horizontal" Margin="10">
+                <TextBlock Text="Motor Index:" VerticalAlignment="Center" Margin="5"/>
+                <TextBox x:Name="Op100MotorIndexTextBox" Width="50" Margin="5"/>
+                <TextBlock Text="Position:" VerticalAlignment="Center" Margin="5"/>
+                <TextBox x:Name="Op100PositionTextBox" Width="80" Margin="5"/>
+                <TextBlock Text="Speed:" VerticalAlignment="Center" Margin="5"/>
+                <TextBox x:Name="Op100SpeedTextBox" Width="50" Margin="5"/>
+                <Button Content="Send OP100" Click="SendOp100Button_Click" Margin="5"/>
+            </StackPanel>
+
             <TextBlock Text="OP102 - Move One Motor to Position" FontWeight="Bold" Margin="10"/>
             <StackPanel Orientation="Horizontal" Margin="10">
                 <TextBlock Text="Motor Index:" VerticalAlignment="Center" Margin="5"/>
@@ -31,16 +42,26 @@
                 <Button Content="Send OP102" Click="SendOp102Button_Click" Margin="5"/>
             </StackPanel>
 
-            <TextBlock Text="OP103 - Go To Center" FontWeight="Bold" Margin="10"/>
-            <StackPanel Orientation="Horizontal" Margin="10">
-                <Button Content="SendOP103" Click="SendOp103Button_Click" Margin="5"/>
-            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="OP103 - Go To Center" FontWeight="Bold" Margin="10"/>
+                    <StackPanel Orientation="Horizontal" Margin="10">
+                        <TextBlock Text="Speed:" VerticalAlignment="Center" Margin="5"/>
+                        <TextBox x:Name="Op103SpeedTextBox" Width="50" Margin="5"/>
+                        <Button Content="SendOP103" Click="SendOp103Button_Click" Margin="5"/>
+                    </StackPanel>
+                </StackPanel>
 
-            <TextBlock Text="OP105 - Homing" FontWeight="Bold" Margin="10"/>
-            <StackPanel Orientation="Horizontal" Margin="10">
-                <Button Content="Send OP105" Click="SendOp105Button_Click" Margin="5"/>
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="OP104 - Go to Home" FontWeight="Bold" Margin="10"/>
+                    <StackPanel Orientation="Horizontal" Margin="10">
+                        <TextBlock Text="Speed:" VerticalAlignment="Center" Margin="5"/>
+                        <TextBox x:Name="Op104SpeedTextBox" Width="50" Margin="5"/>
+                        <Button Content="Send OP104" Click="SendOp104Button_Click" Margin="5"/>
+                    </StackPanel>
+                </StackPanel>
             </StackPanel>
-            <TextBox x:Name="OutputTextBox" IsReadOnly="True" Margin="10" Height="200" VerticalScrollBarVisibility="Auto"/>
+            <TextBox x:Name="OutputTextBox" IsReadOnly="True" Margin="10" Height="140" VerticalScrollBarVisibility="Auto"/>
         </StackPanel>
     </Grid>
 </Window>

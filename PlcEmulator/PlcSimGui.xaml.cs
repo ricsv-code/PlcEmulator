@@ -185,6 +185,7 @@ namespace PlcEmulator
             {
                 int direction = currentAngle < targetAngle ? 1 : -1;
                 currentAngle += direction * _rotationStep;
+                //spara positionerna här eventuellt??
 
                 if ((direction > 0 && currentAngle > targetAngle) || //overshoot protection
                     (direction < 0 && currentAngle < targetAngle))
