@@ -95,7 +95,6 @@
                         <TextBlock Text="{Binding MotorIndex}" Margin="-20,0,0,0"/>
                         <CheckBox IsChecked="{Binding MotorInProgress}" Content="MotorInProgress" Margin="6,2,6,0"/>
                         <CheckBox IsChecked="{Binding MotorIsHomed}" Content="MotorIsHomed" Margin="6,2,6,0"/>
-                        <CheckBox IsChecked="{Binding InHomePosition}" Content="InHomePosition" Margin="6,2,6,0"/>
                         <CheckBox IsChecked="{Binding InCenteredPosition}" Content="InCenteredPosition" Margin="6,2,6,0"/>
                         <CheckBox IsChecked="{Binding InMaxPosition}" Content="InMaxPosition" Margin="6,2,6,0"/>
                         <CheckBox IsChecked="{Binding InMinPosition}" Content="InMinPosition" Margin="6,2,6,0"/>

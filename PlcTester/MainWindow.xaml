@@ -25,7 +25,9 @@
                 <TextBlock Text="Motor Index:" VerticalAlignment="Center" Margin="5"/>
                 <TextBox x:Name="Op102MotorIndexTextBox" Width="50" Margin="5"/>
                 <TextBlock Text="Position:" VerticalAlignment="Center" Margin="5"/>
-                <TextBox x:Name="Op102PositionTextBox" Width="100" Margin="5"/>
+                <TextBox x:Name="Op102PositionTextBox" Width="80" Margin="5"/>
+                <TextBlock Text="Speed:" VerticalAlignment="Center" Margin="5"/>
+                <TextBox x:Name="Op102SpeedTextBox" Width="50" Margin="5"/>
                 <Button Content="Send OP102" Click="SendOp102Button_Click" Margin="5"/>
             </StackPanel>
 

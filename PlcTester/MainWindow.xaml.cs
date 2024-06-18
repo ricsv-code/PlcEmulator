@@ -7,6 +7,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -76,8 +77,25 @@ namespace PclTester
         {
             byte motorIndex = byte.Parse(Op102MotorIndexTextBox.Text);
             int position = int.Parse(Op102PositionTextBox.Text);
+            int speed = int.Parse(Op102SpeedTextBox.Text);
+            if (motorIndex > 9 || motorIndex < 1)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    OutputTextBox.AppendText($"Motor Index can only be between 1 and 9.");
+                });
+                return;
+            }
+            if (speed > 100 || speed < 0)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    OutputTextBox.AppendText($"Speed can only be between 0 and 100.");
+                });
+                return;
+            }
 
-            byte[] signal = CreateOp102Signal(motorIndex, position);
+            byte[] signal = CreateOp102Signal(motorIndex, position, speed);
             await _stream.WriteAsync(signal, 0, signal.Length);
 
             Dispatcher.Invoke(() =>
@@ -86,7 +104,7 @@ namespace PclTester
             });
         }
 
-        private byte[] CreateOp102Signal(byte motorIndex, int position)
+        private byte[] CreateOp102Signal(byte motorIndex, int position, int speed)
         {
             byte[] request = new byte[10];
             request[0] = 102;
@@ -94,6 +112,8 @@ namespace PclTester
 
             request[2] = (byte)(position >> 8); //hiByte
             request[3] = (byte)(position & 0xff); //loByte
+
+            request[6] = (byte)speed;
 
             request[9] = CalculateChecksum(request);
 

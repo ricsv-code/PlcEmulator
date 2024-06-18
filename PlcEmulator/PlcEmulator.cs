@@ -17,16 +17,18 @@ namespace PlcEmulatorCore
         private Action<string> _updateReceivedData;
         private Action<string> _updateSentData;
         private Action<string> _updateOperation;
-        private Action<byte[], int> _updateImage;
+        private Action<int> _updateImage;
+        private Action<int> _showStopper;
 
-        public EmulatorPlc(string ipAddress, int port, Action<string> updateReceivedData, 
-            Action<string> updateSentData, Action<string> updateOperation, Action<byte[], int> updateImage)
+        public EmulatorPlc(string ipAddress, int port, Action<string> updateReceivedData,
+            Action<string> updateSentData, Action<string> updateOperation, Action<int> updateImage, Action<int> showStopper)
         {
             _server = new TcpListener(IPAddress.Parse(ipAddress), port);
             _updateReceivedData = updateReceivedData;
             _updateSentData = updateSentData;
             _updateOperation = updateOperation;
             _updateImage = updateImage;
+            _showStopper = showStopper;
         }
 
         public void Start()
@@ -125,18 +127,53 @@ namespace PlcEmulatorCore
 
         private byte[] HandleOp99(byte[] request)
         {
-            byte[] response = HandleBaseline(request);
-            response[9] = CalculateChecksum(response);
+            if (request[1] == 0)
+            {
 
-            string sentData = BitConverter.ToString(response);
-            _updateSentData?.Invoke($"Sent OP99 response: {sentData}");
-            _updateOperation?.Invoke($"OP99 - Stop Motion received");
+                for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
+                {
+                    MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
 
-            return response;
+                    _showStopper(motorIndex);
+                }
+
+                byte[] response = HandleBaseline(request);
+                response[9] = CalculateChecksum(response);
+
+                string sentData = BitConverter.ToString(response);
+                _updateSentData?.Invoke($"Sent OP99 response: {sentData}");
+                _updateOperation?.Invoke($"OP99 - Stop Motion received");
+
+                return response;
+
+            }
+            return request;
         }
 
         private byte[] HandleOp100(byte[] request)
         {
+            if (request[1] == 0)
+            {
+                return request;
+            }
+
+            int motorIndex = request[1] - 1;
+
+            MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
+
+            int currentPos = (motor.GetHiBytePos() << 8) | motor.GetLoBytePos();
+            int moveDistance = (request[2] << 8 | request[3]);
+            int newPos = currentPos + moveDistance;
+
+            byte hiBytePos = (byte)(newPos >> 8);
+            byte loBytePos = (byte)newPos;
+
+            motor.SetHiBytePos(hiBytePos);
+            motor.SetLoBytePos(loBytePos);
+            motor.SetOperationalSpeed(request[6]);
+
+            _updateImage(motorIndex);
+
             byte[] response = HandleBaseline(request);
             response[9] = CalculateChecksum(response);
 
@@ -161,14 +198,10 @@ namespace PlcEmulatorCore
             motor.SetLoBytePos(request[3]);
             motor.SetOperationalSpeed(request[6]);
 
-            _updateImage(request, motorIndex);
+            _updateImage(motorIndex);
 
             byte[] response = HandleBaseline(request);
 
-            //response[2] = motor.GetHiBytePos();
-            //response[3] = motor.GetLoBytePos();
-            //response[6] = motor.GetOperationalSpeed();
-            
             response[9] = CalculateChecksum(response);
 
             string sentData = BitConverter.ToString(response);
@@ -184,16 +217,20 @@ namespace PlcEmulatorCore
 
             if (request[1] == 0)
             {
-                for (int motorIndex = 0; motorIndex <= GlobalSettings.NumberOfMotors; motorIndex++)
+                for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
                     MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
 
-                    motor.SetHiBytePos(0);
-                    motor.SetLoBytePos(0);
+                    int centerPos = 3142; //göra denna justerbar?
+
+                    byte hiBytePos = (byte)(centerPos >> 8);
+                    byte loBytePos = (byte)centerPos;
+
+                    motor.SetHiBytePos(hiBytePos);
+                    motor.SetLoBytePos(loBytePos);
                     motor.SetOperationalSpeed(request[6]);
 
-                    _updateImage(request, motorIndex);
-
+                    _updateImage(motorIndex);
                 }
 
                 byte[] response = HandleBaseline(request);
@@ -204,7 +241,6 @@ namespace PlcEmulatorCore
                 _updateOperation?.Invoke($"OP103 - 'Go to Center' received");
 
                 return response;
-
             }
             return request;
         }
@@ -218,16 +254,15 @@ namespace PlcEmulatorCore
                 {
                     MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
 
-                    motor.SetHiBytePos(0); 
+                    motor.SetHiBytePos(0);
                     motor.SetLoBytePos(0);
                     motor.SetOperationalSpeed(request[6]);
 
-                    _updateImage(request, motorIndex);
+                    _updateImage(motorIndex);
 
                 }
 
                 byte[] response = HandleBaseline(request);
-
                 response[9] = CalculateChecksum(response);
 
                 string sentData = BitConverter.ToString(response);
@@ -266,13 +301,13 @@ namespace PlcEmulatorCore
 
         private byte[] HandleOp106(byte[] request)
         {
-            if (request[1] == 0) 
+            if (request[1] == 0)
             {
-                return request; 
+                return request;
             }
             else
             {
-                int motorIndex = request[1] - 1; 
+                int motorIndex = request[1] - 1;
 
                 MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
                 byte[] response = HandleBaseline(request);
@@ -333,7 +368,7 @@ namespace PlcEmulatorCore
             if (request[1] == 0)
             {
                 byte[] mStatus = new byte[1];
-                byte[] oStatus = new byte[1];  
+                byte[] oStatus = new byte[1];
                 byte[] response = HandleBaseline(request);
 
                 if (request[5] == 1)

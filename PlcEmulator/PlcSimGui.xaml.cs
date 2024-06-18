@@ -41,7 +41,7 @@ namespace PlcEmulator
                     int port = int.Parse(PortTextBox.Text);
 
                     _stopwatch = new Stopwatch();
-                    _emulator = new EmulatorPlc(ipAddress, port, UpdateReceivedData, UpdateSentData, UpdateOperation, UpdateImage);
+                    _emulator = new EmulatorPlc(ipAddress, port, UpdateReceivedData, UpdateSentData, UpdateOperation, UpdateImage, ShowStopper);
 
                     _stopwatch.Start();
                     _emulator.Start();
@@ -131,17 +131,17 @@ namespace PlcEmulator
             });
         }
 
-        private void UpdateImage(byte[] request, int motorIndex)
+        private void UpdateImage(int motorIndex)
         {
-            int position = (request[2] << 8) | request[3];
-            decimal angleRadians = position / 1000.0m;
-            double angleDegrees = (double)(angleRadians * (180m / (decimal)Math.PI));
-            _targetAngle = (int)angleDegrees;
-
             Dispatcher.Invoke(() =>
             {
                 var viewModel = DataContext as FrontViewModel;
                 var motorViewModel = viewModel?.Motors[motorIndex];
+
+                int position = (motorViewModel.HiBytePos << 8) | motorViewModel.LoBytePos;
+                decimal angleRadians = position / 1000.0m;
+                double angleDegrees = (double)(angleRadians * (180m / (decimal)Math.PI));
+                _targetAngle = (int)angleDegrees;
 
                 if (motorViewModel != null)
                 {
@@ -149,15 +149,11 @@ namespace PlcEmulator
                     int intervalSpeed = 110 - speed; //justera efter hastighet
                     _rotationStep = 5; //5 grader i taget
 
-                    if (_motorTimers.TryGetValue(motorIndex, out var existingTimer)) //döda timers
-                    {
-                        existingTimer.Stop();
-                        _motorTimers.Remove(motorIndex);
-                    }
+
 
                     var timer = new DispatcherTimer();
                     timer.Interval = TimeSpan.FromMilliseconds(intervalSpeed); //speed
-                    timer.Tick += (sender, e) => RotateMotor(sender, e, motorIndex, speed);
+                    timer.Tick += (sender, e) => RotateMotor(motorIndex, speed);
                     _motorTimers[motorIndex] = timer;
 
 
@@ -173,7 +169,7 @@ namespace PlcEmulator
             });
         }
 
-        private void RotateMotor(object sender, EventArgs e, int motorIndex, int speed)
+        private void RotateMotor(int motorIndex, int speed)
         {
             var viewModel = DataContext as FrontViewModel;
             var motorViewModel = viewModel?.Motors[motorIndex];
@@ -182,11 +178,6 @@ namespace PlcEmulator
             int position = (motorViewModel.HiBytePos << 8) | motorViewModel.LoBytePos;
             decimal angleRadians = position / 1000.0m;
             double targetAngle = (double)(angleRadians * (180m / (decimal)Math.PI));
-
-            if (!_currentAngles.ContainsKey(motorIndex)) //plåster (ta bort sen??)
-            {
-                _currentAngles[motorIndex] = 0;
-            }
 
             double currentAngle = _currentAngles[motorIndex];
 
@@ -219,10 +210,29 @@ namespace PlcEmulator
             }
             else
             {
-                _motorTimers[motorIndex].Stop();
+                if (_motorTimers.ContainsKey(motorIndex))
+                {
+                    _motorTimers[motorIndex].Stop();
+                    _motorTimers.Remove(motorIndex);
+                }
                 motorViewModel.UpdateIndicators();
             }
         }
+
+        private void ShowStopper(int motorIndex)
+        {
+            foreach (var timer in _motorTimers.Values)
+            {
+                if (timer.IsEnabled)
+                {
+                    timer.Stop();
+                }
+            }
+
+        }
+
+
+
 
         private void CreateMotorImages()
         {
