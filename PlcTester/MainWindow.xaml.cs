@@ -48,10 +48,10 @@ namespace PlcTester
                 _viewModel = new MotorValuesViewModel();
                 this.DataContext = _viewModel;
 
-                _timer = new DispatcherTimer();
-                _timer.Interval = TimeSpan.FromMilliseconds(100);
-                _timer.Tick += (sender, e) => StatusCheckers();
-                _timer.Start();
+                //_timer = new DispatcherTimer();
+                //_timer.Interval = TimeSpan.FromMilliseconds(100);
+                //_timer.Tick += async (sender, e) => await StatusCheckers();
+                //_timer.Start();
 
 
                 ConnectButton.IsEnabled = false;
@@ -243,7 +243,7 @@ namespace PlcTester
             using (_stream)
             {
 
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[10];
                 int bytesRead;
 
                 try
@@ -462,12 +462,12 @@ namespace PlcTester
             ProcessError(response[7]);
         }
 
-        private async void StatusCheckers()
+        private async Task StatusCheckers()
         {
             if (_client != null && _client.Connected)
             {
-                await SendOP255();
                 await SendOP106();
+                await SendOP255();
             }
         }
 

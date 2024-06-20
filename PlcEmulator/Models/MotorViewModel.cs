@@ -116,6 +116,14 @@ namespace PlcEmulator
             {
                 InHomePosition = false;
             }
+            if (AbsolutePosition == 3142)
+            {
+                InCenteredPosition = true;
+            }
+            else
+            {
+                InCenteredPosition = false;
+            }
         }
 
         public bool MotorIsHomed

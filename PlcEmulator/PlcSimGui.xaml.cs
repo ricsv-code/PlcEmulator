@@ -6,6 +6,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media;
 using Utilities;
 using System.Windows.Controls;
+using System.ComponentModel;
 
 
 namespace PlcEmulator
@@ -148,8 +149,6 @@ namespace PlcEmulator
         private void UpdateImage(int motorIndex, int targetPos)
         {
 
-
-
             Dispatcher.Invoke(() =>
             {
                 var viewModel = DataContext as FrontViewModel;
@@ -183,6 +182,7 @@ namespace PlcEmulator
             });
         }
 
+
         private void RotateMotor(int motorIndex, int speed)
         {
             var viewModel = DataContext as FrontViewModel;
@@ -198,16 +198,23 @@ namespace PlcEmulator
                 int direction = currentAngle < targetAngle ? 1 : -1;
                 currentAngle += direction * _rotationStep;
 
+                int newPos = (int)DegreesToRadians(currentAngle);
+                motorViewModel.HiBytePos = (byte)(newPos >> 8);
+                motorViewModel.LoBytePos = (byte)(newPos & 0xFF);
+                ////spara positionerna här eventuellt??
+
                 motorViewModel.UpdateIndicators();
 
-                //spara positionerna här eventuellt??
 
                 if ((direction > 0 && currentAngle > targetAngle) || //overshoot protection
                     (direction < 0 && currentAngle < targetAngle))
                 {
                     currentAngle = targetAngle;
 
-                    
+                    int targetPos = (int)DegreesToRadians(currentAngle);
+                    motorViewModel.HiBytePos = (byte)(targetPos >> 8);
+                    motorViewModel.LoBytePos = (byte)(targetPos & 0xFF);
+
                 }
 
                 Dispatcher.Invoke(() =>
@@ -251,10 +258,7 @@ namespace PlcEmulator
                     timer.Stop();
                 }
             }
-
         }
-
-
 
 
         private void CreateMotorImages()

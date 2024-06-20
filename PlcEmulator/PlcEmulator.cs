@@ -51,7 +51,7 @@ namespace PlcEmulatorCore
         {
             using (var stream = client.GetStream())
             {
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[10];
                 int bytesRead;
 
                 while (_isRunning == true)
@@ -127,27 +127,22 @@ namespace PlcEmulatorCore
 
         private byte[] HandleOp99(byte[] request)
         {
-            if (request[1] == 0)
+
+            for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
             {
-
-                for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
-                {
-                    MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
-
-                    _showStopper(motorIndex);
-                }
-
-                byte[] response = HandleBaseline(request);
-                response[9] = CalculateChecksum(response);
-
-                string sentData = BitConverter.ToString(response);
-                _updateSentData?.Invoke($"Sent OP99 response: {sentData}");
-                _updateOperation?.Invoke($"OP99 - Stop Motion received");
-
-                return response;
-
+                
+                _showStopper(motorIndex);
             }
-            return request;
+
+            byte[] response = HandleBaseline(request);
+            response[9] = CalculateChecksum(response);
+
+            string sentData = BitConverter.ToString(response);
+            _updateSentData?.Invoke($"Sent OP99 response: {sentData}");
+            _updateOperation?.Invoke($"OP99 - 'Stop Motion' received");
+
+            return response;
+
         }
 
         private byte[] HandleOp100(byte[] request)
@@ -226,7 +221,7 @@ namespace PlcEmulatorCore
 
                     int centerPos = 3142; //göra denna justerbar?
 
-                    
+
                     motor.OperationalSpeed = request[6];
 
                     _updateImage(motorIndex, centerPos);
