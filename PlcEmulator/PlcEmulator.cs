@@ -132,7 +132,7 @@ namespace PlcEmulatorCore
 
                 for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
-                    MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
+                    MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
 
                     _showStopper(motorIndex);
                 }
@@ -159,20 +159,25 @@ namespace PlcEmulatorCore
 
             int motorIndex = request[1] - 1;
 
-            MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
+            MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
 
-            int currentPos = (motor.GetHiBytePos() << 8) | motor.GetLoBytePos();
-            int moveDistance = (request[2] << 8 | request[3]);
+            byte hiByte = (byte)motor.HiBytePos;
+            byte loByte = (byte)motor.LoBytePos;
+
+            int currentPos = (hiByte << 8) | loByte;
+            int moveDistance = (request[2] << 8) | request[3];
             int newPos = currentPos + moveDistance;
 
             byte hiBytePos = (byte)(newPos >> 8);
             byte loBytePos = (byte)newPos;
 
-            motor.SetHiBytePos(hiBytePos);
-            motor.SetLoBytePos(loBytePos);
-            motor.SetOperationalSpeed(request[6]);
+            motor.HiBytePos = hiBytePos;
+            motor.LoBytePos = loBytePos;
+            motor.OperationalSpeed = request[6];
 
             _updateImage(motorIndex);
+
+
 
             byte[] response = HandleBaseline(request);
             response[9] = CalculateChecksum(response);
@@ -192,11 +197,11 @@ namespace PlcEmulatorCore
             }
             int motorIndex = request[1] - 1;
 
-            MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
+            MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
 
-            motor.SetHiBytePos(request[2]);
-            motor.SetLoBytePos(request[3]);
-            motor.SetOperationalSpeed(request[6]);
+            motor.HiBytePos = request[2];
+            motor.LoBytePos = request[3];
+            motor.OperationalSpeed = request[6];
 
             _updateImage(motorIndex);
 
@@ -219,16 +224,16 @@ namespace PlcEmulatorCore
             {
                 for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
-                    MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
+                    MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
 
                     int centerPos = 3142; //göra denna justerbar?
 
                     byte hiBytePos = (byte)(centerPos >> 8);
                     byte loBytePos = (byte)centerPos;
 
-                    motor.SetHiBytePos(hiBytePos);
-                    motor.SetLoBytePos(loBytePos);
-                    motor.SetOperationalSpeed(request[6]);
+                    motor.HiBytePos= hiBytePos;
+                    motor.LoBytePos = loBytePos;
+                    motor.OperationalSpeed = request[6];
 
                     _updateImage(motorIndex);
                 }
@@ -252,11 +257,11 @@ namespace PlcEmulatorCore
             {
                 for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
-                    MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
+                    MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
 
-                    motor.SetHiBytePos(0);
-                    motor.SetLoBytePos(0);
-                    motor.SetOperationalSpeed(request[6]);
+                    motor.HiBytePos = 0;
+                    motor.LoBytePos = 0;
+                    motor.OperationalSpeed = request[6];
 
                     _updateImage(motorIndex);
 
@@ -280,10 +285,9 @@ namespace PlcEmulatorCore
             {
                 for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
-                    MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
+                    MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
 
-                    byte value = request[6];
-                    motor.SetOperationalSpeed(value);
+                    motor.OperationalSpeed = request[6];
                 }
 
                 byte[] response = HandleBaseline(request);
@@ -309,10 +313,10 @@ namespace PlcEmulatorCore
             {
                 int motorIndex = request[1] - 1;
 
-                MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
+                MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
                 byte[] response = HandleBaseline(request);
 
-                byte[] result = new byte[0];
+                byte[] result = new byte[1];
                 if (motor.MotorInProgress)
                     result[0] |= 1 << 0;
                 if (motor.MotorIsHomed)
@@ -330,9 +334,9 @@ namespace PlcEmulatorCore
                 if (motor.Reserved)
                     result[0] |= 1 << 7;
 
-                response[2] = motor.GetHiBytePos();
-                response[3] = motor.GetLoBytePos();
-                response[4] = motor.GetOperationalSpeed();
+                response[2] = (byte)motor.HiBytePos;
+                response[3] = (byte)motor.LoBytePos;
+                response[4] = (byte)motor.OperationalSpeed;
 
                 response[6] = result[0];
 
@@ -388,7 +392,7 @@ namespace PlcEmulatorCore
 
                 for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
-                    MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
+                    MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
 
                     if (motor.MachineInMotion)
                         mStatus[0] |= 1 << 0;

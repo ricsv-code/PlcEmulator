@@ -145,7 +145,7 @@ namespace PlcEmulator
 
                 if (motorViewModel != null)
                 {
-                    int speed = motorViewModel.OperationalSpeed;
+                    int speed = (byte)motorViewModel.OperationalSpeed;
                     int intervalSpeed = 110 - speed; //justera efter hastighet
                     _rotationStep = 5; //5 grader i taget
 

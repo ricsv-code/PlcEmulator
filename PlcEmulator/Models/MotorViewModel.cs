@@ -16,102 +16,91 @@ namespace PlcEmulator
 {
     public class MotorViewModel : INotifyPropertyChanged //binder ui properties till MotorClass instanser
     {
-        private MotorClass Motor;
-
+        private MotorClass _motor;
 
         public int MotorIndex { get; }
         public MotorViewModel(MotorClass motor, int index)
         {
-            Motor = motor;
+            _motor = motor;
             MotorIndex = (index + 1);
-            Motor.PropertyChanged += Motor_PropertyChanged;
         }
 
-        private void Motor_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        public MotorClass Motor => _motor;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            if (e.PropertyName == nameof(MotorClass.OperationalSpeed))
-            {
-                OnPropertyChanged(nameof(OperationalSpeed));
-            }
-            if (e.PropertyName == nameof(MotorClass.HiBytePos) || e.PropertyName == nameof(MotorClass.LoBytePos))
-            {
-                OnPropertyChanged(nameof(HiBytePos));
-                OnPropertyChanged(nameof(LoBytePos));
-                OnPropertyChanged(nameof(AbsolutePosition));
-            }
-        }
-        public MotorClass motor
-        {
-            get { return Motor; }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
         public bool Reserved
         {
-            get => Motor.Reserved;
+            get => _motor.Reserved;
             set
             {
-                if (Motor.Reserved != value)
+                if (_motor.Reserved != value)
                 {
-                    Motor.Reserved = value;
+                    _motor.Reserved = value;
                     OnPropertyChanged(nameof(Reserved));
                 }
             }
         }
         public bool Error
         {
-            get => Motor.Error;
+            get => _motor.Error;
             set
             {
-                if (Motor.Error != value)
+                if (_motor.Error != value)
                 {
-                    Motor.Error = value;
+                    _motor.Error = value;
                     OnPropertyChanged(nameof(Error));
                 }
             }
         }
         public bool InMinPosition
         {
-            get => Motor.InMinPosition;
+            get => _motor.InMinPosition;
             set
             {
-                if (Motor.InMinPosition != value)
+                if (_motor.InMinPosition != value)
                 {
-                    Motor.InMinPosition = value;
+                    _motor.InMinPosition = value;
                     OnPropertyChanged(nameof(InMinPosition));
                 }
             }
         }
         public bool InMaxPosition
         {
-            get => Motor.InMaxPosition;
+            get => _motor.InMaxPosition;
             set
             {
-                if (Motor.InMaxPosition != value)
+                if (_motor.InMaxPosition != value)
                 {
-                    Motor.InMaxPosition = value;
+                    _motor.InMaxPosition = value;
                     OnPropertyChanged(nameof(InMaxPosition));
                 }
             }
         }
         public bool InCenteredPosition
         {
-            get => Motor.InCenteredPosition;
+            get => _motor.InCenteredPosition;
             set
             {
-                if (Motor.InCenteredPosition != value)
+                if (_motor.InCenteredPosition != value)
                 {
-                    Motor.InCenteredPosition = value;
+                    _motor.InCenteredPosition = value;
                     OnPropertyChanged(nameof(InCenteredPosition));
                 }
             }
         }
         public bool InHomePosition
         {
-            get => Motor.InHomePosition;
+            get => _motor.InHomePosition;
             set
             {
-                if (Motor.InHomePosition != value)
+                if (_motor.InHomePosition != value)
                 {
-                    Motor.InHomePosition = value;
+                    _motor.InHomePosition = value;
                     OnPropertyChanged(nameof(InHomePosition));
                 }
             }
@@ -119,7 +108,7 @@ namespace PlcEmulator
 
         public void UpdateIndicators()
         {
-            if ((Motor.HiBytePos ?? 0) == 0 && (Motor.LoBytePos ?? 0) == 0)
+            if ((_motor.HiBytePos ?? 0) == 0 && (_motor.LoBytePos ?? 0) == 0)
             {
                 InHomePosition = true;
             }
@@ -131,24 +120,24 @@ namespace PlcEmulator
 
         public bool MotorIsHomed
         {
-            get => Motor.MotorIsHomed;
+            get => _motor.MotorIsHomed;
             set
             {
-                if (Motor.MotorIsHomed != value)
+                if (_motor.MotorIsHomed != value)
                 {
-                    Motor.MotorIsHomed = value;
+                    _motor.MotorIsHomed = value;
                     OnPropertyChanged(nameof(MotorIsHomed));
                 }
             }
         }
         public bool MotorInProgress
         {
-            get => Motor.MotorInProgress;
+            get => _motor.MotorInProgress;
             set
             {
-                if (Motor.MotorInProgress != value)
+                if (_motor.MotorInProgress != value)
                 {
-                    Motor.MotorInProgress = value;
+                    _motor.MotorInProgress = value;
                     OnPropertyChanged(nameof(MotorInProgress));
                 }
             }
@@ -156,12 +145,12 @@ namespace PlcEmulator
 
         public bool OverrideKey
         {
-            get => Motor.OverrideKey;
+            get => _motor.OverrideKey;
             set
             {
-                if (Motor.OverrideKey != value)
+                if (_motor.OverrideKey != value)
                 {
-                    Motor.OverrideKey = value;
+                    _motor.OverrideKey = value;
                     OnPropertyChanged(nameof(OverrideKey));
                 }
             }
@@ -169,12 +158,12 @@ namespace PlcEmulator
 
         public bool OperationMode
         {
-            get => Motor.OperationMode;
+            get => _motor.OperationMode;
             set
             {
-                if (Motor.OperationMode != value)
+                if (_motor.OperationMode != value)
                 {
-                    Motor.OperationMode = value;
+                    _motor.OperationMode = value;
                     OnPropertyChanged(nameof(OperationMode));
                 }
             }
@@ -182,12 +171,12 @@ namespace PlcEmulator
 
         public bool MachineNeedsHoming
         {
-            get => Motor.MachineNeedsHoming;
+            get => _motor.MachineNeedsHoming;
             set
             {
-                if (Motor.MachineNeedsHoming != value)
+                if (_motor.MachineNeedsHoming != value)
                 {
-                    Motor.MachineNeedsHoming = value;
+                    _motor.MachineNeedsHoming = value;
                     OnPropertyChanged(nameof(MachineNeedsHoming));
                 }
             }
@@ -195,12 +184,12 @@ namespace PlcEmulator
 
         public bool MachineStill
         {
-            get => Motor.MachineStill;
+            get => _motor.MachineStill;
             set
             {
-                if (Motor.MachineStill != value)
+                if (_motor.MachineStill != value)
                 {
-                    Motor.MachineStill = value;
+                    _motor.MachineStill = value;
                     OnPropertyChanged(nameof(MachineStill));
                 }
             }
@@ -208,12 +197,12 @@ namespace PlcEmulator
 
         public bool MachineInMotion
         {
-            get => Motor.MachineInMotion;
+            get => _motor.MachineInMotion;
             set
             {
-                if (Motor.MachineInMotion != value)
+                if (_motor.MachineInMotion != value)
                 {
-                    Motor.MachineInMotion = value;
+                    _motor.MachineInMotion = value;
                     OnPropertyChanged(nameof(MachineInMotion));
                     OnPropertyChanged("BoolFill");
                 }
@@ -222,12 +211,12 @@ namespace PlcEmulator
 
         public bool ProhibitMovement
         {
-            get => Motor.ProhibitMovement;
+            get => _motor.ProhibitMovement;
             set
             {
-                if (Motor.ProhibitMovement != value)
+                if (_motor.ProhibitMovement != value)
                 {
-                    Motor.ProhibitMovement = value;
+                    _motor.ProhibitMovement = value;
                     OnPropertyChanged(nameof(ProhibitMovement));
                 }
             }
@@ -235,12 +224,12 @@ namespace PlcEmulator
 
         public bool SickReset
         {
-            get => Motor.SickReset;
+            get => _motor.SickReset;
             set
             {
-                if (Motor.SickReset != value)
+                if (_motor.SickReset != value)
                 {
-                    Motor.SickReset = value;
+                    _motor.SickReset = value;
                     OnPropertyChanged(nameof(SickReset));
                 }
             }
@@ -248,12 +237,12 @@ namespace PlcEmulator
 
         public bool SickActive
         {
-            get => Motor.SickActive;
+            get => _motor.SickActive;
             set
             {
-                if (Motor.SickActive != value)
+                if (_motor.SickActive != value)
                 {
-                    Motor.SickActive = value;
+                    _motor.SickActive = value;
                     OnPropertyChanged(nameof(SickActive));
                 }
             }
@@ -261,12 +250,12 @@ namespace PlcEmulator
 
         public bool EStopReset
         {
-            get => Motor.EStopReset;
+            get => _motor.EStopReset;
             set
             {
-                if (Motor.EStopReset != value)
+                if (_motor.EStopReset != value)
                 {
-                    Motor.EStopReset = value;
+                    _motor.EStopReset = value;
                     OnPropertyChanged(nameof(EStopReset));
                 }
             }
@@ -274,53 +263,64 @@ namespace PlcEmulator
 
         public bool EStop
         {
-            get => Motor.EStop;
+            get => _motor.EStop;
             set
             {
-                if (Motor.EStop != value)
+                if (_motor.EStop != value)
                 {
-                    Motor.EStop = value;
+                    _motor.EStop = value;
                     OnPropertyChanged(nameof(EStop));
                 }
             }
         }
-        public byte OperationalSpeed => Motor.OperationalSpeed ?? 0;
+        public byte? OperationalSpeed
+        {
+            get => _motor.OperationalSpeed ?? 0;
+            set
+            {
+                if (_motor.OperationalSpeed != value)
+                {
+                    _motor.OperationalSpeed = value;
+                    OnPropertyChanged(nameof(OperationalSpeed));
+                }
+            }
+        }
 
         public byte? HiBytePos
         {
-            get => Motor._hiBytePos ?? 0;
+            get => _motor.HiBytePos ?? 0;
             set
             {
-                if (Motor._hiBytePos != value)
+                if (_motor.HiBytePos != value)
                 {
-                    Motor._hiBytePos = value;
+                    _motor.HiBytePos = value;
                     OnPropertyChanged(nameof(HiBytePos));
+                    OnPropertyChanged(nameof(AbsolutePosition));
                 }
             }
         }
 
         public byte? LoBytePos
         {
-            get => Motor._loBytePos ?? 0;
+            get => _motor.LoBytePos ?? 0;
             set
             {
-                if (Motor._loBytePos != value)
+                if (_motor.LoBytePos != value)
                 {
-                    Motor._loBytePos = value;
+                    _motor.LoBytePos = value;
                     OnPropertyChanged(nameof(LoBytePos));
+                    OnPropertyChanged(nameof(AbsolutePosition));
                 }
             }
         }
-
-
 
         public int AbsolutePosition
         {
             get
             {
-                if (Motor.HiBytePos.HasValue && Motor.LoBytePos.HasValue)
+                if (_motor.HiBytePos.HasValue && _motor.LoBytePos.HasValue)
                 {
-                    return (int)((Motor.HiBytePos.Value << 8) | Motor.LoBytePos.Value);
+                    return (int)((_motor.HiBytePos << 8) | _motor.LoBytePos);
                 }
                 else
                 {
@@ -331,12 +331,7 @@ namespace PlcEmulator
 
 
 
-        public event PropertyChangedEventHandler PropertyChanged;
 
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 }
 

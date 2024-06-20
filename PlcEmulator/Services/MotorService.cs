@@ -14,15 +14,9 @@ namespace PlcEmulator
 {
     public class MotorService //kör fler MotorClass instanser
     {
-        private static readonly List<MotorService> _instances = new List<MotorService>();
-        public MotorClass Motor { get; }
+        private static readonly List<MotorViewModel> _instances = new List<MotorViewModel> ();
 
-        private MotorService()
-        {
-            Motor = new MotorClass();
-        }
-
-        public static MotorService[] Instances
+        public static MotorViewModel[] Instances
         {
             get
             {
@@ -40,7 +34,8 @@ namespace PlcEmulator
             {
                 for (int i = currentCount; i < targetCount; i++)
                 {
-                    _instances.Add(new MotorService());
+                    var motor = new MotorClass();
+                    _instances.Add(new MotorViewModel(motor, i));
                 }
             }
             else if (currentCount > targetCount)

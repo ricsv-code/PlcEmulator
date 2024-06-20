@@ -120,7 +120,7 @@ namespace PlcEmulator
             var motorServices = MotorService.Instances;
             for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
             {
-                Motors.Add(new MotorViewModel(motorServices[i].Motor, i));
+                Motors.Add(motorServices[i]);
             }
         }
 

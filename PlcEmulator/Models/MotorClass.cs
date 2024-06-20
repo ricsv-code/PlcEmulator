@@ -12,7 +12,7 @@ using System.Runtime.CompilerServices;
 
 namespace PlcEmulator
 {
-    public class MotorClass : INotifyPropertyChanged
+    public class MotorClass 
     {
         //Machine Status booleans
         public bool Reserved { get; set; }
@@ -41,98 +41,11 @@ namespace PlcEmulator
         //
 
 
-        public byte? _operationalSpeed { get; set; }
+        public byte? OperationalSpeed { get; set; }
 
-        public byte? _hiBytePos { get; set; }
+        public byte? HiBytePos { get; set; }
 
-        public byte? _loBytePos { get; set; }
-
-        public byte? OperationalSpeed
-        {
-            get => _operationalSpeed;
-            set
-            {
-                if (_operationalSpeed != value)
-                {
-                    _operationalSpeed = value;
-                    OnPropertyChanged(nameof(OperationalSpeed));
-                }
-            }
-        }
-
-        public byte? HiBytePos
-        {
-            get => _hiBytePos;
-            set
-            {
-                if (_hiBytePos != value)
-                {
-                    _hiBytePos = value;
-                    OnPropertyChanged(nameof(HiBytePos));
-                }
-            }
-        }
-
-        public byte? LoBytePos
-        {
-            get => _loBytePos;
-            set
-            {
-                if (_loBytePos != value)
-                {
-                    _loBytePos = value;
-                    OnPropertyChanged(nameof(LoBytePos));
-                }
-            }
-        }
-
-        public void SetOperationalSpeed(byte value)
-        {
-            OperationalSpeed = value;
-        }
-
-        public byte GetOperationalSpeed()
-        {
-            return OperationalSpeed ?? 0;
-        }
-        public void SetHiBytePos(byte hiBytePos)
-        {
-
-            HiBytePos = hiBytePos;
-        }
-
-        public void SetLoBytePos(byte loBytePos)
-        {
-
-            LoBytePos = loBytePos;
-        }
-
-        public byte GetHiBytePos()
-        {
-            return HiBytePos ?? 0;
-        }
-
-        public byte GetLoBytePos()
-        {
-            return LoBytePos ?? 0;
-        }
-
-        public void HomeChecker()
-        {
-            if (GetHiBytePos() == 0 && GetLoBytePos() == 0)
-            {
-                InHomePosition = true;
-                OnPropertyChanged(nameof(HiBytePos));
-                OnPropertyChanged(nameof(LoBytePos));
-            }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        public byte? LoBytePos { get; set; }
 
     }
 }
