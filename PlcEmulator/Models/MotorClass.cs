@@ -122,6 +122,8 @@ namespace PlcEmulator
             if (GetHiBytePos() == 0 && GetLoBytePos() == 0)
             {
                 InHomePosition = true;
+                OnPropertyChanged(nameof(HiBytePos));
+                OnPropertyChanged(nameof(LoBytePos));
             }
         }
 

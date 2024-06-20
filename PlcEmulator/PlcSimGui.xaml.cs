@@ -18,9 +18,9 @@ namespace PlcEmulator
 
         private Dictionary<int, DispatcherTimer> _motorTimers = new Dictionary<int, DispatcherTimer>();
         private Dictionary<int, double> _currentAngles = new Dictionary<int, double>();
+        private Dictionary<int, double> _targetAngles = new Dictionary<int, double>();
 
-        private int _targetAngle;
-        private int _currentAngle;
+
         private int _motorIndex;
         private int _rotationStep;
 
@@ -138,10 +138,10 @@ namespace PlcEmulator
                 var viewModel = DataContext as FrontViewModel;
                 var motorViewModel = viewModel?.Motors[motorIndex];
 
-                int position = (motorViewModel.HiBytePos << 8) | motorViewModel.LoBytePos;
+                int position = motorViewModel.AbsolutePosition;
                 decimal angleRadians = position / 1000.0m;
                 double angleDegrees = (double)(angleRadians * (180m / (decimal)Math.PI));
-                _targetAngle = (int)angleDegrees;
+                _targetAngles[motorIndex] = angleDegrees;
 
                 if (motorViewModel != null)
                 {
@@ -175,9 +175,7 @@ namespace PlcEmulator
             var motorViewModel = viewModel?.Motors[motorIndex];
             if (motorViewModel == null) return;
 
-            int position = (motorViewModel.HiBytePos << 8) | motorViewModel.LoBytePos;
-            decimal angleRadians = position / 1000.0m;
-            double targetAngle = (double)(angleRadians * (180m / (decimal)Math.PI));
+            double targetAngle = _targetAngles[motorIndex];
 
             double currentAngle = _currentAngles[motorIndex];
 
@@ -185,6 +183,11 @@ namespace PlcEmulator
             {
                 int direction = currentAngle < targetAngle ? 1 : -1;
                 currentAngle += direction * _rotationStep;
+
+                byte bytedAngle = (byte)currentAngle;
+                motorViewModel.HiBytePos = (byte)(bytedAngle << 8);
+                motorViewModel.LoBytePos = bytedAngle;
+
                 //spara positionerna här eventuellt??
 
                 if ((direction > 0 && currentAngle > targetAngle) || //overshoot protection

@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿using System.IO;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
@@ -11,8 +12,10 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
-namespace PclTester
+
+namespace PlcTester
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -21,10 +24,15 @@ namespace PclTester
     {
         private TcpClient _client;
         private NetworkStream _stream;
+        private MotorValuesViewModel _viewModel;
+        private bool _isRunning;
+        private DispatcherTimer _timer;
+
         public MainWindow()
         {
             InitializeComponent();
             DisconnectButton.IsEnabled = false;
+
         }
 
         private async void ConnectButton_Click(object sender, RoutedEventArgs e)
@@ -37,9 +45,19 @@ namespace PclTester
                 _client = new TcpClient(ipAddress, port);
                 _stream = _client.GetStream();
 
+                _viewModel = new MotorValuesViewModel();
+                this.DataContext = _viewModel;
+
+                _timer = new DispatcherTimer();
+                _timer.Interval = TimeSpan.FromMilliseconds(100);
+                _timer.Tick += (sender, e) => StatusCheckers();
+                _timer.Start();
+
+
                 ConnectButton.IsEnabled = false;
                 DisconnectButton.IsEnabled = true;
                 ConnectionIndicator.Fill = Brushes.Green;
+                _isRunning = true;
 
                 OutputTextBox.AppendText($"Connected to PLC at {ipAddress}:{port}.\r\n");
 
@@ -58,7 +76,8 @@ namespace PclTester
             {
                 if (_client != null)
                 {
-                    _stream.Close();
+                    _isRunning = false;
+
                     _client.Close();
 
                     ConnectButton.IsEnabled = true;
@@ -72,6 +91,18 @@ namespace PclTester
             {
                 OutputTextBox.AppendText($"Error: {ex.Message}\r\n");
             }
+        }
+
+
+        private async void SendOp99Button_Click(object sender, RoutedEventArgs e) //Stop
+        {
+            byte[] request = CreateRequest(99);
+            await _stream.WriteAsync(request, 0, request.Length);
+
+            Dispatcher.Invoke(() =>
+            {
+                OutputTextBox.AppendText($"Sent OP99\r\n");
+            });
         }
 
         private async void SendOp100Button_Click(object sender, RoutedEventArgs e) //flytta relativt
@@ -168,7 +199,7 @@ namespace PclTester
             });
         }
 
-        private async void SendOp104Button_Click(object sender, RoutedEventArgs e)
+        private async void SendOp104Button_Click(object sender, RoutedEventArgs e) //go to home
         {
 
             int speed = int.Parse(Op104SpeedTextBox.Text);
@@ -209,21 +240,251 @@ namespace PclTester
 
         private async Task ListenForResponses()
         {
-            byte[] buffer = new byte[1024];
-            int bytesRead;
-
-            while (_client.Connected)
+            using (_stream)
             {
-                bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length); //
-                if (bytesRead > 0)
+
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+
+                try
                 {
-                    string response = BitConverter.ToString(buffer, 0, bytesRead);
-                    Dispatcher.Invoke(() =>
+
+                    while (_client.Connected && _isRunning)
                     {
-                        OutputTextBox.AppendText($"Received: {response}\r\n");
-                    });
+                        if ((bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+                        {
+                            byte[] response = buffer.Take(bytesRead).ToArray();
+                            string received = BitConverter.ToString(response);
+
+                            OutputTextBox.AppendText($"Received: {received}\r\n");
+
+                            ProcessResponse(response);
+                        }
+                    }
+                }
+                catch (IOException ex)
+                {
+                    OutputTextBox.AppendText($"Error: {ex.Message}\r\n");
+                }
+                catch (ObjectDisposedException ex)
+                {
+                    OutputTextBox.AppendText($"Error: {ex.Message}\r\n");
+                }
+                finally
+                {
+                    if (_client.Connected)
+                    {
+                        _client.Close();
+                        _isRunning = false;
+                    }
                 }
             }
         }
+
+
+        public void ProcessResponse(byte[] response)
+        {
+
+            byte opCode = response[0];
+
+            switch (opCode)
+            {
+                case 99:
+                    Process99(response);
+                    break;
+                case 100:
+                    Process100(response);
+                    break;
+                case 102:
+                    Process102(response);
+                    break;
+                case 103:
+                case 104:
+                case 105:
+                    Process103or104or105(response);
+                    break;
+                case 106:
+                    Process106(response);
+                    break;
+                case 255:
+                    Process255(response);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private static void ProcessError(byte response) //dessa responser endast relevanta i 100 och 102
+        {
+            switch (response)
+            {
+                case 1:
+                    //out of range.Going to max pos
+                    break;
+                case 2:
+                    //out of range. Going to min pos
+                    break;
+                case 3:
+                    //not allowed when in home pos
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void Process99(byte[] response)
+        {
+            //nödstopp
+            ProcessError(response[7]);
+        }
+
+        private void Process100(byte[] response)
+        {
+            int motorIndex = response[1];
+
+            int position = response[2] << 8 | response[3];
+            int direction = response[5] == 1 ? -1 : 1;
+            int speed = response[6];
+            ProcessError(response[7]);
+
+
+            _viewModel.Motors[motorIndex].Position = direction * position;
+            _viewModel.Motors[motorIndex].Speed = speed;
+
+        }
+
+        private void Process102(byte[] response)
+        {
+            int motorIndex = response[1];
+
+            int position = response[2] << 8 | response[3];
+            int direction = response[5] == 1 ? -1 : 1;
+            int speed = response[6];
+            ProcessError(response[7]);
+
+            _viewModel.Motors[motorIndex].Position = direction * position;
+            _viewModel.Motors[motorIndex].Speed = speed;
+
+        }
+
+        private void Process103or104or105(byte[] response)
+        {
+
+            int speed = response[6];
+
+            foreach (var motor in _viewModel.Motors)
+            {
+                motor.Speed = speed;
+            }
+
+        }
+
+        private void Process106(byte[] response)
+        {
+            int motorIndex = response[1];
+
+            int position = response[2] << 8 | response[3];
+            int direction = response[5] == 1 ? -1 : 1;
+            int speed = response[4];
+
+            if ((response[6] << 0) == 1)
+                _viewModel.Motors[motorIndex].MotorInProgress = true;
+            if ((response[6] << 1) == 1)
+                _viewModel.Motors[motorIndex].MotorIsHomed = true;
+            if ((response[6] << 2) == 1)
+                _viewModel.Motors[motorIndex].InHomePosition = true;
+            if ((response[6] << 3) == 1)
+                _viewModel.Motors[motorIndex].InCenteredPosition = true;
+            if ((response[6] << 4) == 1)
+                _viewModel.Motors[motorIndex].InMaxPosition = true;
+            if ((response[6] << 5) == 1)
+                _viewModel.Motors[motorIndex].InMinPosition = true;
+            if ((response[6] << 6) == 1)
+                _viewModel.Motors[motorIndex].Error = true;
+
+            ProcessError(response[7]);
+
+
+            _viewModel.Motors[motorIndex].Position = direction * position;
+            _viewModel.Motors[motorIndex].Speed = speed;
+
+        }
+
+
+        private void Process107(byte[] response)
+        {
+
+            if (response[1] == 1)
+            {
+                //så är digital IO på
+            }
+            else
+            {
+                //så är digital IO av
+            }
+
+            ProcessError(response[7]);
+        }
+
+        private void Process255(byte[] response)
+        {
+            foreach (var motor in _viewModel.Motors)
+            {
+                if ((response[1] << 0) == 1)
+                    motor.MotorInProgress = true;
+                if ((response[1] << 1) == 1)
+                    motor.MotorInProgress = false; //???????
+                if ((response[1] << 2) == 1)
+                    motor.InCenteredPosition = true;
+                if ((response[1] << 3) == 1)
+                    motor.InHomePosition = true;
+                if ((response[1] << 4) == 1)
+                    motor.OperationMode = true;
+                if ((response[1] << 5) == 1)
+                    motor.OverrideKey = true;
+
+                if ((response[5] << 0) == 1)
+                    motor.EStop = true;
+                if ((response[5] << 1) == 1)
+                    motor.EStopReset = true;
+                if ((response[5] << 2) == 1)
+                    motor.SickActive = true;
+                if ((response[5] << 3) == 1)
+                    motor.SickReset = true;
+                if ((response[5] << 4) == 1)
+                    motor.ProhibitMovement = true;
+            }
+
+            int systemErrorCode = response[6];
+
+            //gör något med systemErrorCode
+
+            ProcessError(response[7]);
+        }
+
+        private async void StatusCheckers()
+        {
+            if (_client != null && _client.Connected)
+            {
+                await SendOP255();
+                await SendOP106();
+            }
+        }
+
+        private async Task SendOP255()
+        {
+            byte[] request = CreateRequest(255);
+
+            await _stream.WriteAsync(request, 0, request.Length);
+        }
+
+        private async Task SendOP106()
+        {
+            byte[] request = CreateRequest(106);
+
+            await _stream.WriteAsync(request, 0, request.Length);
+        }
+
+
     }
 }

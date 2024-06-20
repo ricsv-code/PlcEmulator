@@ -312,7 +312,7 @@ namespace PlcEmulatorCore
                 MotorClass motor = PlcEmulator.MotorService.Instances[motorIndex].Motor;
                 byte[] response = HandleBaseline(request);
 
-                byte[] result = new byte[1];
+                byte[] result = new byte[0];
                 if (motor.MotorInProgress)
                     result[0] |= 1 << 0;
                 if (motor.MotorIsHomed)

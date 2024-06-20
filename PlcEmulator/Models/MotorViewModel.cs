@@ -10,6 +10,7 @@ using System.Security.RightsManagement;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using System.Drawing;
+using System.Threading;
 
 namespace PlcEmulator
 {
@@ -285,9 +286,33 @@ namespace PlcEmulator
         }
         public byte OperationalSpeed => Motor.OperationalSpeed ?? 0;
 
-        public byte HiBytePos => Motor.HiBytePos ?? 0;
+        public byte? HiBytePos
+        {
+            get => Motor._hiBytePos ?? 0;
+            set
+            {
+                if (Motor._hiBytePos != value)
+                {
+                    Motor._hiBytePos = value;
+                    OnPropertyChanged(nameof(HiBytePos));
+                }
+            }
+        }
 
-        public byte LoBytePos => Motor.LoBytePos ?? 0;
+        public byte? LoBytePos
+        {
+            get => Motor._loBytePos ?? 0;
+            set
+            {
+                if (Motor._loBytePos != value)
+                {
+                    Motor._loBytePos = value;
+                    OnPropertyChanged(nameof(LoBytePos));
+                }
+            }
+        }
+
+
 
         public int AbsolutePosition
         {
