@@ -17,11 +17,11 @@ namespace PlcEmulatorCore
         private Action<string> _updateReceivedData;
         private Action<string> _updateSentData;
         private Action<string> _updateOperation;
-        private Action<int> _updateImage;
+        private Action<int, int> _updateImage;
         private Action<int> _showStopper;
 
         public EmulatorPlc(string ipAddress, int port, Action<string> updateReceivedData,
-            Action<string> updateSentData, Action<string> updateOperation, Action<int> updateImage, Action<int> showStopper)
+            Action<string> updateSentData, Action<string> updateOperation, Action<int, int> updateImage, Action<int> showStopper)
         {
             _server = new TcpListener(IPAddress.Parse(ipAddress), port);
             _updateReceivedData = updateReceivedData;
@@ -168,14 +168,12 @@ namespace PlcEmulatorCore
             int moveDistance = (request[2] << 8) | request[3];
             int newPos = currentPos + moveDistance;
 
-            byte hiBytePos = (byte)(newPos >> 8);
-            byte loBytePos = (byte)newPos;
+            motor.HiBytePos = (byte)(newPos >> 8);
+            motor.LoBytePos = (byte)(newPos & 0xFF);
 
-            motor.HiBytePos = hiBytePos;
-            motor.LoBytePos = loBytePos;
             motor.OperationalSpeed = request[6];
 
-            _updateImage(motorIndex);
+            _updateImage(motorIndex, newPos);
 
 
 
@@ -199,11 +197,11 @@ namespace PlcEmulatorCore
 
             MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
 
-            motor.HiBytePos = request[2];
-            motor.LoBytePos = request[3];
             motor.OperationalSpeed = request[6];
 
-            _updateImage(motorIndex);
+            int targetPos = (request[2] << 8) | request[3];
+
+            _updateImage(motorIndex, targetPos);
 
             byte[] response = HandleBaseline(request);
 
@@ -212,7 +210,7 @@ namespace PlcEmulatorCore
             string sentData = BitConverter.ToString(response);
 
             _updateSentData?.Invoke($"Sent OP102 response: {sentData}");
-            _updateOperation?.Invoke($"OP102 - 'Move One Motor to Position' received");
+            _updateOperation?.Invoke($"OP102 - {targetPos}'Move One Motor to Position' received");
 
             return response;
         }
@@ -228,14 +226,10 @@ namespace PlcEmulatorCore
 
                     int centerPos = 3142; //göra denna justerbar?
 
-                    byte hiBytePos = (byte)(centerPos >> 8);
-                    byte loBytePos = (byte)centerPos;
-
-                    motor.HiBytePos= hiBytePos;
-                    motor.LoBytePos = loBytePos;
+                    
                     motor.OperationalSpeed = request[6];
 
-                    _updateImage(motorIndex);
+                    _updateImage(motorIndex, centerPos);
                 }
 
                 byte[] response = HandleBaseline(request);
@@ -259,11 +253,10 @@ namespace PlcEmulatorCore
                 {
                     MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
 
-                    motor.HiBytePos = 0;
-                    motor.LoBytePos = 0;
+                    int homePos = 0;
                     motor.OperationalSpeed = request[6];
 
-                    _updateImage(motorIndex);
+                    _updateImage(motorIndex, homePos);
 
                 }
 

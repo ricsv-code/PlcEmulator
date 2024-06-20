@@ -47,6 +47,7 @@ namespace PlcEmulator
 
         public byte? LoBytePos { get; set; }
 
+
     }
 }
 

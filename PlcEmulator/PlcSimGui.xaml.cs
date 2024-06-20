@@ -131,17 +131,32 @@ namespace PlcEmulator
             });
         }
 
-        private void UpdateImage(int motorIndex)
+        private static double RadiansToDegrees(int radians)
         {
+            decimal angleRadians = radians / 1000.0m;
+            double angleDegrees = (double)(angleRadians * (180m / (decimal)Math.PI));
+            return angleDegrees;
+        }
+
+        private static double DegreesToRadians(double degrees)
+        {
+            double radians = degrees * (Math.PI / 180);
+            double output = radians * 1000;
+            return output;
+        }
+
+        private void UpdateImage(int motorIndex, int targetPos)
+        {
+
+
+
             Dispatcher.Invoke(() =>
             {
                 var viewModel = DataContext as FrontViewModel;
                 var motorViewModel = viewModel?.Motors[motorIndex];
 
-                int position = motorViewModel.AbsolutePosition;
-                decimal angleRadians = position / 1000.0m;
-                double angleDegrees = (double)(angleRadians * (180m / (decimal)Math.PI));
-                _targetAngles[motorIndex] = angleDegrees;
+                _targetAngles[motorIndex] = RadiansToDegrees(targetPos);
+
 
                 if (motorViewModel != null)
                 {
@@ -149,9 +164,8 @@ namespace PlcEmulator
                     int intervalSpeed = 110 - speed; //justera efter hastighet
                     _rotationStep = 5; //5 grader i taget
 
-
-
                     var timer = new DispatcherTimer();
+
                     timer.Interval = TimeSpan.FromMilliseconds(intervalSpeed); //speed
                     timer.Tick += (sender, e) => RotateMotor(motorIndex, speed);
                     _motorTimers[motorIndex] = timer;
@@ -184,9 +198,7 @@ namespace PlcEmulator
                 int direction = currentAngle < targetAngle ? 1 : -1;
                 currentAngle += direction * _rotationStep;
 
-                byte bytedAngle = (byte)currentAngle;
-                motorViewModel.HiBytePos = (byte)(bytedAngle << 8);
-                motorViewModel.LoBytePos = bytedAngle;
+                motorViewModel.UpdateIndicators();
 
                 //spara positionerna här eventuellt??
 
@@ -194,7 +206,8 @@ namespace PlcEmulator
                     (direction < 0 && currentAngle < targetAngle))
                 {
                     currentAngle = targetAngle;
-                    motorViewModel.UpdateIndicators();
+
+                    
                 }
 
                 Dispatcher.Invoke(() =>
@@ -205,8 +218,12 @@ namespace PlcEmulator
 
                     if (image != null && image.RenderTransform is RotateTransform rotateTransform)
                     {
+                        int hiByte = (int)motorViewModel.HiBytePos;
+                        int loByte = (int)motorViewModel.LoBytePos;
+
                         rotateTransform.Angle = currentAngle;
-                        textBoxImageData.Text = ("Rotated motor " + (motorIndex + 1) + ": " + (int)currentAngle + "°");
+                        //textBoxImageData.Text = ("Rotated motor " + (motorIndex + 1) + ": " + (int)currentAngle + "°");
+                        textBoxImageData.Text = ("LoByte: " + loByte + " | HiByte: " + hiByte);
                     }
                 });
 
@@ -219,7 +236,9 @@ namespace PlcEmulator
                     _motorTimers[motorIndex].Stop();
                     _motorTimers.Remove(motorIndex);
                 }
+
                 motorViewModel.UpdateIndicators();
+
             }
         }
 

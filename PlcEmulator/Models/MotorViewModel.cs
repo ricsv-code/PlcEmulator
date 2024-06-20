@@ -296,6 +296,7 @@ namespace PlcEmulator
                     _motor.HiBytePos = value;
                     OnPropertyChanged(nameof(HiBytePos));
                     OnPropertyChanged(nameof(AbsolutePosition));
+
                 }
             }
         }
@@ -318,18 +319,16 @@ namespace PlcEmulator
         {
             get
             {
-                if (_motor.HiBytePos.HasValue && _motor.LoBytePos.HasValue)
+                if (Motor.HiBytePos.HasValue && Motor.LoBytePos.HasValue)
                 {
-                    return (int)((_motor.HiBytePos << 8) | _motor.LoBytePos);
+                    return (int)((Motor.HiBytePos.Value << 8) | Motor.LoBytePos.Value);
                 }
                 else
                 {
-                    return 0; 
+                    return 0;
                 }
             }
         }
-
-
 
 
     }
