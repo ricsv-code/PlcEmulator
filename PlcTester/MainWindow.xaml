@@ -101,7 +101,7 @@
 
 
         <WrapPanel x:Name="motorContainer" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="1" Margin="0"
-                   ItemWidth="200" ItemHeight="220"/>
+                   ItemWidth="180" ItemHeight="180"/>
 
     </Grid>
 </Window>

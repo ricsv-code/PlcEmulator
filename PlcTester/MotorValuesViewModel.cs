@@ -26,7 +26,7 @@ namespace PlcTester
             Motors = new ObservableCollection<MotorValues>();
             for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)//skapa 4 elr 9 motorer
             {
-                Motors.Add(new MotorValues { MotorIndex = i});
+                Motors.Add(new MotorValues { MotorIndex = i + 1});
             }
         }
 
@@ -41,7 +41,7 @@ namespace PlcTester
                 Motors.Clear();
                 for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
                 {
-                    Motors.Add(new MotorValues { MotorIndex = i });
+                    Motors.Add(new MotorValues { MotorIndex = i + 1 });
                 }
             }
         }

@@ -61,7 +61,7 @@ namespace PlcEmulatorCore
                     {
                         try
                         {
-                            if ((bytesRead = stream.Read(buffer, 0, buffer.Length)) != 0)
+                            if ((bytesRead = stream.Read(buffer, 0, buffer.Length)) == 10)
                             {
                                 byte[] request = buffer.Take(bytesRead).ToArray();
                                 string receivedData = BitConverter.ToString(request);

@@ -111,6 +111,7 @@ namespace PlcTester
                                 {
 
                                     OutputTextBox.AppendText($"Received: {received}\r\n");
+                                    OutputTextBox.ScrollToEnd();
 
                                 });
 
@@ -192,6 +193,7 @@ namespace PlcTester
             Dispatcher.Invoke(() =>
             {
                 OutputTextBox.AppendText($"Sent OP99\r\n");
+                OutputTextBox.ScrollToEnd();
             });
         }
 
@@ -205,6 +207,7 @@ namespace PlcTester
                 Dispatcher.Invoke(() =>
                 {
                     OutputTextBox.AppendText($"Motor Index can only be between 1 and 9.");
+                    OutputTextBox.ScrollToEnd();
                 });
                 return;
             }
@@ -213,6 +216,7 @@ namespace PlcTester
                 Dispatcher.Invoke(() =>
                 {
                     OutputTextBox.AppendText($"Speed can only be between 0 and 100.");
+                    OutputTextBox.ScrollToEnd();
                 });
                 return;
             }
@@ -515,7 +519,7 @@ namespace PlcTester
             if (_client != null && _client.Connected)
             {
                 {
-                    for (byte i = 1; i <= 4; i++) //sätt setting här
+                    for (byte i = 1; i <= GlobalSettings.NumberOfMotors; i++) //sätt setting här
                     {
                         try
                         {
@@ -615,7 +619,7 @@ namespace PlcTester
             await _streamSemaphore.WaitAsync();
             try
             {
-                if (_stream != null && _stream.CanWrite)
+                if (_stream != null && data.Length == 10)
                 {
                     await _stream.WriteAsync(data, 0, data.Length);
                 }
