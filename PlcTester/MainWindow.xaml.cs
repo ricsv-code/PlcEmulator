@@ -49,17 +49,17 @@ namespace PlcTester
 
                 _client = new TcpClient(ipAddress, port);
                 _stream = _client.GetStream();
+                _isRunning = true;
+
+                ConnectButton.IsEnabled = false;
+                DisconnectButton.IsEnabled = true;
 
                 _timer = new DispatcherTimer();
                 _timer.Interval = TimeSpan.FromMilliseconds(1000);
                 _timer.Tick += async (sender, e) => await StatusCheckers();
                 _timer.Start();
 
-
-                ConnectButton.IsEnabled = false;
-                DisconnectButton.IsEnabled = true;
-
-                _isRunning = true;
+                await Task.Run(() => ListenForResponses());
 
                 Dispatcher.Invoke(() =>
                 {
@@ -67,8 +67,6 @@ namespace PlcTester
                     OutputTextBox.AppendText($"Connected to PLC at {ipAddress}:{port}.\r\n");
                     ConnectionIndicator.Fill = Brushes.Green;
                 });
-                await Task.Run(() => ListenForResponses());
-
             }
             catch (Exception ex)
             {
@@ -96,10 +94,6 @@ namespace PlcTester
 
         private async Task ListenForResponses()
         {
-            try
-            {
-                using (_stream)
-                {
 
                     byte[] buffer = new byte[1024];
                     int bytesRead;
@@ -108,7 +102,7 @@ namespace PlcTester
                     {
                         while ((bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
                         {
-                            if (bytesRead == 0)
+                            if (bytesRead != 0)
                             {
                                 byte[] response = buffer.Take(bytesRead).ToArray();
                                 string received = BitConverter.ToString(response);
@@ -127,12 +121,19 @@ namespace PlcTester
                     }
                     catch (IOException ex)
                     {
-                        OutputTextBox.AppendText($"Error LFR IO: {ex.Message}\r\n");
+                        Dispatcher.Invoke(() =>
+                        {
+                            OutputTextBox.AppendText($"Error LFR IO: {ex.Message}\r\n");
+                        });
                     }
                     catch (ObjectDisposedException ex)
                     {
-                        OutputTextBox.AppendText($"Error LFR OD: {ex.Message}\r\n");
-                    }
+                        Dispatcher.Invoke(() =>
+                        {
+                            OutputTextBox.AppendText($"Error LFR OD: {ex.Message}\r\n");
+
+                        });
+                     }
                     finally
                     {
                         if (_client.Connected)
@@ -142,14 +143,7 @@ namespace PlcTester
                         }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                OutputTextBox.AppendText($"Error using _stream: {ex.Message}\r\n");
-
-            }
-        }
-
+            
 
 
         //
@@ -394,7 +388,7 @@ namespace PlcTester
 
         private void Process100(byte[] response)
         {
-            int motorIndex = response[1];
+            int motorIndex = response[1] - 1;
 
             int position = response[2] << 8 | response[3];
             int direction = response[5] == 1 ? -1 : 1;
@@ -409,7 +403,7 @@ namespace PlcTester
 
         private void Process102(byte[] response)
         {
-            int motorIndex = response[1];
+            int motorIndex = response[1] - 1;
 
             int position = response[2] << 8 | response[3];
             int direction = response[5] == 1 ? -1 : 1;
@@ -435,7 +429,7 @@ namespace PlcTester
 
         private void Process106(byte[] response)
         {
-            int motorIndex = response[1];
+            int motorIndex = response[1] - 1;
 
             int position = response[2] << 8 | response[3];
             int direction = response[5] == 1 ? -1 : 1;
