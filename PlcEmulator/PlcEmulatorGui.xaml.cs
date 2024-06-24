@@ -11,24 +11,20 @@ using System.ComponentModel;
 
 namespace PlcEmulator
 {
-    public partial class PlcSimGui : Window
+    public partial class PlcEmulatorGui : Window
     {
         private EmulatorPlc _emulator;
         private Stopwatch _stopwatch;
         private bool _isRunning;
+        private MotorViewModel _viewModel;
 
         private Dictionary<int, DispatcherTimer> _motorTimers = new Dictionary<int, DispatcherTimer>();
-        private Dictionary<int, double> _currentAngles = new Dictionary<int, double>();
-        private Dictionary<int, double> _targetAngles = new Dictionary<int, double>();
 
-
-        private int _motorIndex;
-        private int _rotationStep;
-
-        public PlcSimGui()
+        public PlcEmulatorGui()
         {
             InitializeComponent();
             CreateMotorImages();
+            _viewModel = (MotorViewModel)DataContext;
             buttonStop.IsEnabled = false;
         }
 
@@ -50,7 +46,7 @@ namespace PlcEmulator
 
                     buttonStart.IsEnabled = false;
                     buttonStop.IsEnabled = true;
-                    ConnectionIndicator.Fill = System.Windows.Media.Brushes.Green;
+                    ConnectionIndicator.Fill = Brushes.Green;
 
                     textBoxOperation.Text = $"PLC Emulator started..\r\n";
                 }
@@ -74,7 +70,7 @@ namespace PlcEmulator
                     buttonStart.IsEnabled = true;
                     buttonStop.IsEnabled = false;
 
-                    ConnectionIndicator.Fill = System.Windows.Media.Brushes.Red;
+                    ConnectionIndicator.Fill = Brushes.Red;
 
                     textBoxOperation.Text = "PLC Emulator stopped..\r\n";
                 }
@@ -97,8 +93,8 @@ namespace PlcEmulator
             {
                 if (int.TryParse(menuItem.Header.ToString(), out int numberOfMotors))
                 {
-                    var viewModel = DataContext as FrontViewModel;
-                    viewModel.NumberOfMotors = numberOfMotors;
+
+                    _viewModel.NumberOfMotors = numberOfMotors;
 
                     CreateMotorImages();
                 }
@@ -132,124 +128,114 @@ namespace PlcEmulator
             });
         }
 
-        private static double RadiansToDegrees(int radians)
-        {
-            decimal angleRadians = radians / 1000.0m;
-            double angleDegrees = (double)(angleRadians * (180m / (decimal)Math.PI));
-            return angleDegrees;
-        }
 
-        private static double DegreesToRadians(double degrees)
-        {
-            double radians = degrees * (Math.PI / 180);
-            double output = radians * 1000;
-            return output;
-        }
 
-        private void UpdateImage(int motorIndex, int targetPos)
+        private void UpdateImage(int motorIndex)
         {
 
             Dispatcher.Invoke(() =>
             {
-                var viewModel = DataContext as FrontViewModel;
-                var motorViewModel = viewModel?.Motors[motorIndex];
-
-                _targetAngles[motorIndex] = RadiansToDegrees(targetPos);
+                var motor = MotorService.Instances[motorIndex];
 
 
-                if (motorViewModel != null)
+                if (motor != null)
                 {
-                    int speed = (byte)motorViewModel.OperationalSpeed;
-                    int intervalSpeed = 110 - speed; //justera efter hastighet
-                    _rotationStep = 5; //5 grader i taget
-
-                    var timer = new DispatcherTimer();
-
-                    timer.Interval = TimeSpan.FromMilliseconds(intervalSpeed); //speed
-                    timer.Tick += (sender, e) => RotateMotor(motorIndex, speed);
-                    _motorTimers[motorIndex] = timer;
-
-
-                    if (!_motorTimers[motorIndex].IsEnabled)
+                    if (motor.AbsolutePosition != motor.TargetPosition)
                     {
-                        if (!_currentAngles.ContainsKey(motorIndex))
+
+                        int speed = (byte)motor.OperationalSpeed;
+
+                        if (!_motorTimers.ContainsKey(motorIndex))
                         {
-                            _currentAngles[motorIndex] = 0;
+                            var timer = new DispatcherTimer();
+                            timer.Interval = TimeSpan.FromMilliseconds(10);
+                            timer.Tick += (sender, e) => RotateMotor(motorIndex);
+                            _motorTimers[motorIndex] = timer;
                         }
+
+                        motor.MachineInMotion = true;
                         _motorTimers[motorIndex].Start();
+                    }
+                    else
+                    {
+                        if (_motorTimers.ContainsKey(motorIndex))
+                        {
+                            _motorTimers[motorIndex].Stop();
+                            motor.MachineInMotion = false;
+                        }
                     }
                 }
             });
         }
 
 
-        private void RotateMotor(int motorIndex, int speed)
+        private void RotateMotor(int motorIndex)
         {
-            var viewModel = DataContext as FrontViewModel;
-            var motorViewModel = viewModel?.Motors[motorIndex];
-            if (motorViewModel == null) return;
+            var motor = MotorService.Instances[motorIndex];
+            if (motor == null) return;
 
-            double targetAngle = _targetAngles[motorIndex];
+            double targetAngle = Helpers.RadiansToDegrees(motor.TargetPosition);
+            double currentAngle = Helpers.RadiansToDegrees(motor.AbsolutePosition);
 
-            double currentAngle = _currentAngles[motorIndex];
-
-            if (Math.Abs(currentAngle - targetAngle) > 0) //AVRUNDNING borttagen
+            if (Math.Abs(currentAngle - targetAngle) > 0.1) //AVRUNDNING borttagen
             {
                 int direction = currentAngle < targetAngle ? 1 : -1;
-                currentAngle += direction * _rotationStep;
+                
+                int speed = (byte)motor.OperationalSpeed;
 
-                int newPos = (int)DegreesToRadians(currentAngle);
-                motorViewModel.HiBytePos = (byte)(newPos >> 8);
-                motorViewModel.LoBytePos = (byte)(newPos & 0xFF);
-                ////spara positionerna här eventuellt??
+                double rotationStep = Math.Min((speed * 0.05), Math.Abs(targetAngle - currentAngle));//overshoot protection
 
-                motorViewModel.UpdateIndicators();
+                currentAngle += direction * rotationStep;
 
+                motor.HiBytePos = (byte)((int)Helpers.DegreesToRadians(currentAngle) >> 8);
+                motor.LoBytePos = (byte)((int)Helpers.DegreesToRadians(currentAngle) & 0xFF);
+                motor.UpdateIndicators();
 
-                if ((direction > 0 && currentAngle > targetAngle) || //overshoot protection
-                    (direction < 0 && currentAngle < targetAngle))
+                if ((direction > 0 && currentAngle >= targetAngle) || //overshoot protection
+                    (direction < 0 && currentAngle <= targetAngle))
                 {
                     currentAngle = targetAngle;
-
-                    int targetPos = (int)DegreesToRadians(currentAngle);
-                    motorViewModel.HiBytePos = (byte)(targetPos >> 8);
-                    motorViewModel.LoBytePos = (byte)(targetPos & 0xFF);
-
                 }
 
-                Dispatcher.Invoke(() =>
-                {
-                    StackPanel stackPanel = imageContainer.Children[motorIndex] as StackPanel;
-                    StackPanel iStackPanel = stackPanel.Children[1] as StackPanel;
-                    System.Windows.Controls.Image image = iStackPanel.Children[1] as System.Windows.Controls.Image;
+                _updateMotorImage(motorIndex, currentAngle);
+                
 
-                    if (image != null && image.RenderTransform is RotateTransform rotateTransform)
-                    {
-                        int hiByte = (int)motorViewModel.HiBytePos;
-                        int loByte = (int)motorViewModel.LoBytePos;
-
-                        rotateTransform.Angle = currentAngle;
-                        //textBoxImageData.Text = ("Rotated motor " + (motorIndex + 1) + ": " + (int)currentAngle + "°");
-                        textBoxImageData.Text = ("LoByte: " + loByte + " | HiByte: " + hiByte);
-                    }
-                });
-
-                _currentAngles[motorIndex] = currentAngle;
             }
             else
             {
+                currentAngle = targetAngle;
+                motor.HiBytePos = (byte)((int)Helpers.DegreesToRadians(currentAngle) >> 8);
+                motor.LoBytePos = (byte)((int)Helpers.DegreesToRadians(currentAngle) & 0xFF);
+                motor.UpdateIndicators();
+                
                 if (_motorTimers.ContainsKey(motorIndex))
                 {
                     _motorTimers[motorIndex].Stop();
-                    _motorTimers.Remove(motorIndex);
+                    motor.MachineInMotion = false;
                 }
-
-                motorViewModel.UpdateIndicators();
-
             }
         }
 
-        private void ShowStopper(int motorIndex)
+        private void _updateMotorImage(int motorIndex, double currentAngle)
+        {
+
+            Dispatcher.Invoke(() =>
+            {
+                StackPanel stackPanel = imageContainer.Children[motorIndex] as StackPanel;
+                StackPanel iStackPanel = stackPanel.Children[1] as StackPanel;
+                System.Windows.Controls.Image image = iStackPanel.Children[1] as System.Windows.Controls.Image;
+
+                if (image != null && image.RenderTransform is RotateTransform rotateTransform)
+                {
+                    var motor = MotorService.Instances[motorIndex];
+                    rotateTransform.Angle = currentAngle;
+                    //textBoxImageData.Text = ("Rotated motor " + (motorIndex + 1) + ": " + (int)currentAngle + "°");
+                    textBoxImageData.Text = ("LoByte: " + motor.LoBytePos + " | HiByte: " + motor.HiBytePos);
+                }
+            });
+        }
+
+        private void ShowStopper()
         {
             foreach (var timer in _motorTimers.Values)
             {
@@ -257,6 +243,11 @@ namespace PlcEmulator
                 {
                     timer.Stop();
                 }
+            }
+
+            foreach (var motor in MotorService.Instances)
+            {
+                motor.MachineInMotion = false;
             }
         }
 
@@ -278,12 +269,9 @@ namespace PlcEmulator
 
                 var image = new System.Windows.Controls.Image();
 
-                var viewModel = DataContext as FrontViewModel;
-                var motorViewModel = viewModel?.Motors[i];
-                if (motorViewModel == null) return;
+                var motorViewModel = MotorService.Instances[i];
 
                 motorViewModel.UpdateIndicators();
-
 
                 image.Source = motorImage;
                 {
@@ -301,15 +289,15 @@ namespace PlcEmulator
                 };
 
 
-                var iStackPanel = viewModel.CreateInfoText("OperationalSpeed", "AbsolutePosition", motorViewModel);
+                var iStackPanel = GuiCreators.CreateInfoText("OperationalSpeed", "AbsolutePosition", motorViewModel);
 
                 //Skapa indicators med bindings
-                var machineInMotionStackPanel = viewModel.CreateIndicator("MachineInMotion", motorViewModel);
-                var machineStillStackPanel = viewModel.CreateIndicator("MachineStill", motorViewModel);
-                var machineNeedsHomingStackPanel = viewModel.CreateIndicator("MachineNeedsHoming", motorViewModel);
-                var machineInCenterStackPanel = viewModel.CreateIndicator("InCenteredPosition", motorViewModel);
-                var machineInHomeStackPanel = viewModel.CreateIndicator("InHomePosition", motorViewModel);
-                var eButtonPressedStackPanel = viewModel.CreateIndicator("EStop", motorViewModel);
+                var machineInMotionStackPanel = GuiCreators.CreateIndicator("MachineInMotion", motorViewModel);
+                var machineStillStackPanel = GuiCreators.CreateIndicator("MachineStill", motorViewModel);
+                var machineNeedsHomingStackPanel = GuiCreators.CreateIndicator("MachineNeedsHoming", motorViewModel);
+                var machineInCenterStackPanel = GuiCreators.CreateIndicator("InCenteredPosition", motorViewModel);
+                var machineInHomeStackPanel = GuiCreators.CreateIndicator("InHomePosition", motorViewModel);
+                var eButtonPressedStackPanel = GuiCreators.CreateIndicator("EStop", motorViewModel);
 
 
                 StackPanel statusStackPanel = new StackPanel();
@@ -339,7 +327,6 @@ namespace PlcEmulator
                     verticalStackPanel.Children.Add(horizontalStackPanel);
                     verticalStackPanel.Children.Add(iStackPanel);
                 };
-
 
 
                 RotateTransform rotateTransform = new RotateTransform(0);

@@ -23,7 +23,7 @@ namespace Utilities
                     return boolValue ? Brushes.Green : Brushes.Red;
                 }
 
-                return Brushes.Transparent;
+                return Brushes.Red;
             }
             catch (Exception e)
             {

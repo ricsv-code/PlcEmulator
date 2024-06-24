@@ -32,6 +32,8 @@ namespace PlcTester
         {
             InitializeComponent();
             DisconnectButton.IsEnabled = false;
+            _viewModel = new MotorValuesViewModel();
+            this.DataContext = _viewModel;
 
         }
 
@@ -45,13 +47,10 @@ namespace PlcTester
                 _client = new TcpClient(ipAddress, port);
                 _stream = _client.GetStream();
 
-                _viewModel = new MotorValuesViewModel();
-                this.DataContext = _viewModel;
-
-                //_timer = new DispatcherTimer();
-                //_timer.Interval = TimeSpan.FromMilliseconds(100);
-                //_timer.Tick += async (sender, e) => await StatusCheckers();
-                //_timer.Start();
+                _timer = new DispatcherTimer();
+                _timer.Interval = TimeSpan.FromMilliseconds(1000);
+                _timer.Tick += async (sender, e) => await StatusCheckers();
+                _timer.Start();
 
 
                 ConnectButton.IsEnabled = false;
@@ -67,8 +66,79 @@ namespace PlcTester
             catch (Exception ex)
             {
                 OutputTextBox.AppendText($"Error: {ex.Message}$\r\n");
+                ConnectionIndicator.Fill = Brushes.Red;
             }
         }
+
+
+        //
+
+
+        //private async Task ResponseListen()
+        //{
+        //    while (_isRunning)
+        //    {
+        //        TcpClient client = _client.AcceptTcpClientAsync().GetAwaiter().GetResult();
+        //        ListenForResponses(client);
+        //    }
+        //}
+
+
+        private async Task ListenForResponses()
+        {
+            using (var stream = _client.GetStream())
+            {
+
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+
+                try
+                {
+
+                    while (_client.Connected)
+                    {
+                        if ((bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+                        {
+                            if (bytesRead == 10)
+                            {
+                                byte[] response = buffer.Take(bytesRead).ToArray();
+                                string received = BitConverter.ToString(response);
+
+                                OutputTextBox.AppendText($"Received: {received}\r\n");
+
+                                ProcessResponse(response);
+                            }
+                            else
+                            {
+                                Dispatcher.Invoke(() =>
+                                {
+                                    OutputTextBox.AppendText($"Incorrect byte length received: {bytesRead}\r\n");
+                                });
+                            }
+                        }
+                    }
+                }
+                catch (IOException ex)
+                {
+                    OutputTextBox.AppendText($"Error: {ex.Message}\r\n");
+                }
+                catch (ObjectDisposedException ex)
+                {
+                    OutputTextBox.AppendText($"Error: {ex.Message}\r\n");
+                }
+                finally
+                {
+                    if (_client.Connected)
+                    {
+                        _client.Close();
+                        _isRunning = false;
+                    }
+                }
+            }
+
+        }
+
+        //
 
         private async void DisconnectButton_Click(object sender, RoutedEventArgs e)
         {
@@ -77,19 +147,19 @@ namespace PlcTester
                 if (_client != null)
                 {
                     _isRunning = false;
-
+                    _stream.Close();
                     _client.Close();
-
-                    ConnectButton.IsEnabled = true;
-                    DisconnectButton.IsEnabled = false;
-                    ConnectionIndicator.Fill = Brushes.Red;
 
                     OutputTextBox.AppendText("Disconnected from PLC...\r\n");
                 }
+                ConnectButton.IsEnabled = true;
+                DisconnectButton.IsEnabled = false;
+                ConnectionIndicator.Fill = Brushes.Red;
             }
             catch (Exception ex)
             {
                 OutputTextBox.AppendText($"Error: {ex.Message}\r\n");
+                ConnectionIndicator.Fill = Brushes.Red;
             }
         }
 
@@ -236,49 +306,6 @@ namespace PlcTester
         private byte CalculateChecksum(byte[] data)
         {
             return (byte)data.Take(9).Sum(b => b);
-        }
-
-        private async Task ListenForResponses()
-        {
-            using (_stream)
-            {
-
-                byte[] buffer = new byte[10];
-                int bytesRead;
-
-                try
-                {
-
-                    while (_client.Connected && _isRunning)
-                    {
-                        if ((bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
-                        {
-                            byte[] response = buffer.Take(bytesRead).ToArray();
-                            string received = BitConverter.ToString(response);
-
-                            OutputTextBox.AppendText($"Received: {received}\r\n");
-
-                            ProcessResponse(response);
-                        }
-                    }
-                }
-                catch (IOException ex)
-                {
-                    OutputTextBox.AppendText($"Error: {ex.Message}\r\n");
-                }
-                catch (ObjectDisposedException ex)
-                {
-                    OutputTextBox.AppendText($"Error: {ex.Message}\r\n");
-                }
-                finally
-                {
-                    if (_client.Connected)
-                    {
-                        _client.Close();
-                        _isRunning = false;
-                    }
-                }
-            }
         }
 
 
@@ -466,21 +493,72 @@ namespace PlcTester
         {
             if (_client != null && _client.Connected)
             {
-                await SendOP106();
-                await SendOP255();
+                {
+                    for (byte i = 1; i <= 4; i++) //sätt setting här
+                    {
+                        try
+                        {
+                            await SendOP106(i);
+                            await Task.Delay(100);
+
+                        }
+                        catch (ObjectDisposedException ex)
+                        {
+                            Dispatcher.Invoke(() =>
+                            {
+                                OutputTextBox.AppendText($"Error: {ex.Message}");
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            Dispatcher.Invoke(() =>
+                            {
+                                OutputTextBox.AppendText($"Error: {ex.Message}");
+                            });
+                        }
+                    }
+                    try
+                    {
+                        await SendOP255();
+                    }
+                    catch (ObjectDisposedException ex)
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            OutputTextBox.AppendText($"Error: {ex.Message}");
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            OutputTextBox.AppendText($"Error: {ex.Message}");
+                        });
+                    }
+                }
+
             }
         }
 
         private async Task SendOP255()
         {
+            if (_stream == null)
+                throw new ObjectDisposedException("_stream");
+
             byte[] request = CreateRequest(255);
+            request[9] = CalculateChecksum(request);
 
             await _stream.WriteAsync(request, 0, request.Length);
         }
 
-        private async Task SendOP106()
+        private async Task SendOP106(byte i)
         {
+            if (_stream == null)
+                throw new ObjectDisposedException("_stream");
+
             byte[] request = CreateRequest(106);
+            request[1] = i;
+            request[9] = CalculateChecksum(request);
 
             await _stream.WriteAsync(request, 0, request.Length);
         }

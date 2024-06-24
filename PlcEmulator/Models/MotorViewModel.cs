@@ -16,16 +16,31 @@ namespace PlcEmulator
 {
     public class MotorViewModel : INotifyPropertyChanged //binder ui properties till MotorClass instanser
     {
-        private MotorClass _motor;
 
+        private double _windowHeight;
+        private double _windowWidth;
+        private double _motorColumnWidth;
+        private double _motorRowHeight;
+        private int _numberOfMotors;
+
+
+        public MotorViewModel()
+        {
+            _numberOfMotors = GlobalSettings.NumberOfMotors;
+            UpdateWindowDimensions();
+            Motors = new ObservableCollection<MotorViewModel>(MotorService.Instances);
+        }
+
+        private MotorClass _motor;
         public int MotorIndex { get; }
         public MotorViewModel(MotorClass motor, int index)
         {
             _motor = motor;
             MotorIndex = (index + 1);
         }
-
         public MotorClass Motor => _motor;
+
+        public ObservableCollection<MotorViewModel> Motors { get; private set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -106,25 +121,6 @@ namespace PlcEmulator
             }
         }
 
-        public void UpdateIndicators()
-        {
-            if ((_motor.HiBytePos ?? 0) == 0 && (_motor.LoBytePos ?? 0) == 0)
-            {
-                InHomePosition = true;
-            }
-            else
-            {
-                InHomePosition = false;
-            }
-            if (AbsolutePosition == 3142)
-            {
-                InCenteredPosition = true;
-            }
-            else
-            {
-                InCenteredPosition = false;
-            }
-        }
 
         public bool MotorIsHomed
         {
@@ -212,7 +208,6 @@ namespace PlcEmulator
                 {
                     _motor.MachineInMotion = value;
                     OnPropertyChanged(nameof(MachineInMotion));
-                    OnPropertyChanged("BoolFill");
                 }
             }
         }
@@ -337,6 +332,111 @@ namespace PlcEmulator
                 }
             }
         }
+
+        public int TargetPosition
+        {
+            get => _motor.TargetPosition;
+            set
+            {
+                if (_motor.TargetPosition != value)
+                {
+                    _motor.TargetPosition = value;
+                    OnPropertyChanged(nameof(TargetPosition));
+                }
+            }
+        }
+
+        //ui-grejer
+        public void UpdateIndicators()
+        {
+            if ((_motor.HiBytePos ?? 0) == 0 && (_motor.LoBytePos ?? 0) == 0)
+            {
+                InHomePosition = true;
+            }
+            else
+            {
+                InHomePosition = false;
+            }
+            if (AbsolutePosition == 3142)
+            {
+                InCenteredPosition = true;
+            }
+            else
+            {
+                InCenteredPosition = false;
+            }
+        }
+
+        public int NumberOfMotors
+        {
+            get => _numberOfMotors;
+            set
+            {
+                _numberOfMotors = value;
+                OnPropertyChanged(nameof(NumberOfMotors));
+                GlobalSettings.NumberOfMotors = value;
+                UpdateWindowDimensions();
+            }
+        }
+        public double WindowHeights
+        {
+            get => _windowHeight;
+            set
+            {
+                _windowHeight = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double WindowWidths
+        {
+            get => _windowWidth;
+            set
+            {
+                _windowWidth = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double MotorColumnWidth
+        {
+            get => _motorColumnWidth;
+            set
+            {
+                _motorColumnWidth = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double MotorRowHeight
+        {
+            get => _motorRowHeight;
+            set
+            {
+                _motorRowHeight = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private void UpdateWindowDimensions()
+        {
+            if (NumberOfMotors == 4)
+            {
+                WindowHeights = 650;
+                WindowWidths = 1600;
+                MotorColumnWidth = 580;
+                MotorRowHeight = 200;
+
+            }
+            else if (NumberOfMotors == 9)
+            {
+                WindowHeights = 810;
+                WindowWidths = 1860;
+                MotorColumnWidth = 820;
+                MotorRowHeight = 320;
+            }
+        }
+
 
 
     }

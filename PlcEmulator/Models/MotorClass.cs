@@ -47,6 +47,18 @@ namespace PlcEmulator
 
         public byte? LoBytePos { get; set; }
 
+        public int TargetPosition { get; set; }
+        public int AbsolutePosition
+        {
+            get
+            {
+                if (HiBytePos.HasValue && LoBytePos.HasValue)
+                {
+                    return (int)((HiBytePos.Value << 8) | LoBytePos.Value);
+                }
+                return 0;
+            }
+        }
 
     }
 }

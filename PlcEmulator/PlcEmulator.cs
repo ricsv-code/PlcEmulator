@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -17,11 +18,11 @@ namespace PlcEmulatorCore
         private Action<string> _updateReceivedData;
         private Action<string> _updateSentData;
         private Action<string> _updateOperation;
-        private Action<int, int> _updateImage;
-        private Action<int> _showStopper;
+        private Action<int> _updateImage;
+        private Action _showStopper;
 
         public EmulatorPlc(string ipAddress, int port, Action<string> updateReceivedData,
-            Action<string> updateSentData, Action<string> updateOperation, Action<int, int> updateImage, Action<int> showStopper)
+            Action<string> updateSentData, Action<string> updateOperation, Action<int> updateImage, Action showStopper)
         {
             _server = new TcpListener(IPAddress.Parse(ipAddress), port);
             _updateReceivedData = updateReceivedData;
@@ -49,23 +50,46 @@ namespace PlcEmulatorCore
 
         private void HandleClient(TcpClient client)
         {
-            using (var stream = client.GetStream())
+            try
             {
-                byte[] buffer = new byte[10];
-                int bytesRead;
-
-                while (_isRunning == true)
+                using (var stream = client.GetStream())
                 {
-                    if ((bytesRead = stream.Read(buffer, 0, buffer.Length)) != 0)
-                    {
-                        byte[] request = buffer.Take(bytesRead).ToArray();
-                        string receivedData = BitConverter.ToString(request);
-                        _updateReceivedData?.Invoke($"Received: {receivedData}");
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
 
-                        byte[] response = ProcessRequest(request);
-                        stream.Write(response, 0, response.Length);
+                    while (_isRunning == true)
+                    {
+                        try
+                        {
+                            if ((bytesRead = stream.Read(buffer, 0, buffer.Length)) != 0)
+                            {
+                                byte[] request = buffer.Take(bytesRead).ToArray();
+                                string receivedData = BitConverter.ToString(request);
+                                _updateReceivedData?.Invoke($"Received: {receivedData}");
+
+                                byte[] response = ProcessRequest(request);
+                                stream.Write(response, 0, response.Length);
+                            }
+                        }
+                        catch (IOException ex)
+                        {
+                            _updateReceivedData?.Invoke($"IO Exception: {ex.Message}");
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            _updateReceivedData?.Invoke($"Exception: {ex.Message}");
+                            break;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                _updateReceivedData?.Invoke($"Exception in HandleClient: {ex.Message}");
+            }
+            finally
+            {
                 client.Close();
             }
         }
@@ -127,18 +151,11 @@ namespace PlcEmulatorCore
 
         private byte[] HandleOp99(byte[] request)
         {
-
-            for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
-            {
-                
-                _showStopper(motorIndex);
-            }
+            _showStopper();
 
             byte[] response = HandleBaseline(request);
-            response[9] = CalculateChecksum(response);
 
-            string sentData = BitConverter.ToString(response);
-            _updateSentData?.Invoke($"Sent OP99 response: {sentData}");
+            Helpers.LogSentData(_updateSentData, response, "OP99");
             _updateOperation?.Invoke($"OP99 - 'Stop Motion' received");
 
             return response;
@@ -156,27 +173,18 @@ namespace PlcEmulatorCore
 
             MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
 
-            byte hiByte = (byte)motor.HiBytePos;
-            byte loByte = (byte)motor.LoBytePos;
-
-            int currentPos = (hiByte << 8) | loByte;
+            int currentPos = motor.AbsolutePosition;
             int moveDistance = (request[2] << 8) | request[3];
             int newPos = currentPos + moveDistance;
 
-            motor.HiBytePos = (byte)(newPos >> 8);
-            motor.LoBytePos = (byte)(newPos & 0xFF);
-
+            motor.TargetPosition = newPos;
             motor.OperationalSpeed = request[6];
 
-            _updateImage(motorIndex, newPos);
-
-
+            _updateImage(motorIndex);
 
             byte[] response = HandleBaseline(request);
-            response[9] = CalculateChecksum(response);
 
-            string sentData = BitConverter.ToString(response);
-            _updateSentData?.Invoke($"Sent OP100 response: {sentData}");
+            Helpers.LogSentData(_updateSentData, response, "OP100");
             _updateOperation?.Invoke($"OP100 - 'Move One Motor Relatively' received");
 
             return response;
@@ -190,21 +198,19 @@ namespace PlcEmulatorCore
             }
             int motorIndex = request[1] - 1;
 
-            MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
+            MotorViewModel motor = MotorService.Instances[motorIndex];
 
-            motor.OperationalSpeed = request[6];
 
             int targetPos = (request[2] << 8) | request[3];
 
-            _updateImage(motorIndex, targetPos);
+            motor.OperationalSpeed = request[6];
+            motor.TargetPosition = targetPos;
+
+            _updateImage(motorIndex);
 
             byte[] response = HandleBaseline(request);
 
-            response[9] = CalculateChecksum(response);
-
-            string sentData = BitConverter.ToString(response);
-
-            _updateSentData?.Invoke($"Sent OP102 response: {sentData}");
+            Helpers.LogSentData(_updateSentData, response, "OP102");
             _updateOperation?.Invoke($"OP102 - {targetPos}'Move One Motor to Position' received");
 
             return response;
@@ -212,26 +218,23 @@ namespace PlcEmulatorCore
 
         private byte[] HandleOp103(byte[] request)
         {
-
             if (request[1] == 0)
             {
                 for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
-                    MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
+                    MotorViewModel motor = MotorService.Instances[motorIndex];
 
                     int centerPos = 3142; //göra denna justerbar?
 
-
                     motor.OperationalSpeed = request[6];
+                    motor.TargetPosition = centerPos;
 
-                    _updateImage(motorIndex, centerPos);
+                    _updateImage(motorIndex);
                 }
 
                 byte[] response = HandleBaseline(request);
-                response[9] = CalculateChecksum(response);
 
-                string sentData = BitConverter.ToString(response);
-                _updateSentData?.Invoke($"Sent OP103 response: {sentData}");
+                Helpers.LogSentData(_updateSentData, response, "OP103");
                 _updateOperation?.Invoke($"OP103 - 'Go to Center' received");
 
                 return response;
@@ -246,20 +249,19 @@ namespace PlcEmulatorCore
             {
                 for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
-                    MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
+                    MotorViewModel motor = MotorService.Instances[motorIndex];
 
-                    int homePos = 0;
+                    int homePos = 0; //gör denna justerbar också
                     motor.OperationalSpeed = request[6];
+                    motor.TargetPosition = homePos;
 
-                    _updateImage(motorIndex, homePos);
+                    _updateImage(motorIndex);
 
                 }
 
                 byte[] response = HandleBaseline(request);
-                response[9] = CalculateChecksum(response);
 
-                string sentData = BitConverter.ToString(response);
-                _updateSentData?.Invoke($"Sent OP104 response: {sentData}");
+                Helpers.LogSentData(_updateSentData, response, "OP104");
                 _updateOperation?.Invoke($"OP104 - 'Go To Home' received");
 
                 return response;
@@ -273,17 +275,16 @@ namespace PlcEmulatorCore
             {
                 for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
-                    MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
+                    MotorViewModel motor = MotorService.Instances[motorIndex];
+
+                    //homing
 
                     motor.OperationalSpeed = request[6];
                 }
 
                 byte[] response = HandleBaseline(request);
 
-                response[9] = CalculateChecksum(response);
-
-                string sentData = BitConverter.ToString(response);
-                _updateSentData?.Invoke($"Sent OP105 response: {sentData}");
+                Helpers.LogSentData(_updateSentData, response, "OP105");
                 _updateOperation?.Invoke($"OP105 - 'Homing' received");
 
                 return response;
@@ -293,7 +294,7 @@ namespace PlcEmulatorCore
 
         private byte[] HandleOp106(byte[] request)
         {
-            if (request[1] == 0)
+            if (request[1] == 0 || request[1] > GlobalSettings.NumberOfMotors)
             {
                 return request;
             }
@@ -301,7 +302,7 @@ namespace PlcEmulatorCore
             {
                 int motorIndex = request[1] - 1;
 
-                MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
+                MotorViewModel motor = MotorService.Instances[motorIndex];
                 byte[] response = HandleBaseline(request);
 
                 byte[] result = new byte[1];
@@ -328,10 +329,8 @@ namespace PlcEmulatorCore
 
                 response[6] = result[0];
 
-                response[9] = CalculateChecksum(response);
 
-                string sentData = BitConverter.ToString(response);
-                _updateSentData?.Invoke($"Sent OP106 response: {sentData}");
+                Helpers.LogSentData(_updateSentData, response, "OP106");
 
                 return response;
             }
@@ -346,10 +345,8 @@ namespace PlcEmulatorCore
             }
 
             byte[] response = HandleBaseline(request);
-            response[9] = CalculateChecksum(response);
 
-            string sentData = BitConverter.ToString(response);
-            _updateSentData?.Invoke($"Sent OP107 response: {sentData}");
+            Helpers.LogSentData(_updateSentData, response, "OP107");
             _updateOperation?.Invoke($"OP107 - 'Set Digital IO' received");
 
             return response;
@@ -380,7 +377,7 @@ namespace PlcEmulatorCore
 
                 for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
-                    MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
+                    MotorViewModel motor = MotorService.Instances[motorIndex];
 
                     if (motor.MachineInMotion)
                         mStatus[0] |= 1 << 0;
@@ -418,10 +415,7 @@ namespace PlcEmulatorCore
                 response[6] = 0; //System Error Code
                 response[7] = 0; //Command Execution Error
 
-                response[9] = CalculateChecksum(response);
-
-                string sentData = BitConverter.ToString(response);
-                _updateSentData?.Invoke($"Sent OP255 response: {sentData}");
+                Helpers.LogSentData(_updateSentData, response, "OP255");
 
                 return response;
             }
@@ -432,23 +426,10 @@ namespace PlcEmulatorCore
         private byte[] HandleUnknownOpCode(byte[] request)
         {
             byte[] response = HandleBaseline(request);
-            response[9] = CalculateChecksum(response);
 
-            string sentData = BitConverter.ToString(response);
-            _updateSentData?.Invoke($"Sent: {sentData}");
+            Helpers.LogSentData(_updateSentData, response, "Unknown OpCode");
 
             return response;
-        }
-
-        private bool VerifyChecksum(byte[] data)
-        {
-            byte calculatedChecksum = CalculateChecksum(data.Take(9).ToArray());
-            return calculatedChecksum == data[9];
-        }
-
-        private byte CalculateChecksum(byte[] data)
-        {
-            return (byte)data.Sum(b => b);
         }
 
         public void Stop()

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PlcTester"
         mc:Ignorable="d"
-        Title="MainWindow" Height="670" Width="1200">
+        Title="PLC Tester" Height="670" Width="1200">
     <Window.DataContext>
         <local:MotorValuesViewModel />
     </Window.DataContext>

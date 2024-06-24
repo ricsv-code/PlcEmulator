@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:PlcEmulator"
              xmlns:utilities="clr-namespace:Utilities"
-             StartupUri="PlcSimGui.xaml">
+             StartupUri="PlcEmulatorGui.xaml">
     <Application.Resources>
          
     </Application.Resources>
