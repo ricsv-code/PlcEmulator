@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:PlcTester"
         xmlns:utilities="clr-namespace:Utilities"
         mc:Ignorable="d"
-        Title="PLC Tester" Height="670" Width="1200">
+        Title="PLC Tester" Height="670" Width="1200"
+        Background="#FFF0F0F0">
     <Window.DataContext>
         <local:MotorValuesViewModel />
     </Window.DataContext>
@@ -22,14 +23,14 @@
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
 
-        <DockPanel Grid.Row="0" Grid.ColumnSpan="3">
-            <Menu DockPanel.Dock="Top">
-                <MenuItem Header="Options">
-                    <MenuItem Header="Number of Motors:">
-                        <MenuItem Header="4" IsCheckable="True" 
+        <DockPanel Grid.ColumnSpan="2">
+            <Menu Height="20" DockPanel.Dock="Top" VerticalAlignment="Top">
+                <MenuItem Header="Options" FlowDirection="LeftToRight">
+                    <MenuItem Header="Number of Motors:" FlowDirection="LeftToRight">
+                        <MenuItem FlowDirection="LeftToRight" Header="4" IsCheckable="True" 
                                   IsChecked="{Binding NumberOfMotors, Mode=TwoWay, Converter={StaticResource intToBool},
                                   ConverterParameter=4}" Click="NumberOfMotorsMenuItem_Click"/>
-                        <MenuItem Header="9" IsCheckable="True" 
+                        <MenuItem FlowDirection="LeftToRight" Header="9" IsCheckable="True" 
                                   IsChecked="{Binding NumberOfMotors, Mode=TwoWay, Converter={StaticResource intToBool},
                                   ConverterParameter=9}" Click="NumberOfMotorsMenuItem_Click"/>
                     </MenuItem>

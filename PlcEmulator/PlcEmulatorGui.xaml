@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:PlcEmulator" 
         xmlns:utilities="clr-namespace:Utilities"
         mc:Ignorable="d" 
-        Title="PLC Emulator" Height="{Binding WindowHeights, Mode=TwoWay}" Width="{Binding WindowWidths, Mode=TwoWay}">
+        Title="PLC Emulator" Height="{Binding WindowHeights, Mode=TwoWay}" Width="{Binding WindowWidths, Mode=TwoWay}"
+        Background="#FFF0F0F0">
     <Window.DataContext>
         <local:MotorViewModel />
     </Window.DataContext>
@@ -27,7 +28,7 @@
             <ColumnDefinition Width="{Binding MotorColumnWidth, Mode=TwoWay}"/>
         </Grid.ColumnDefinitions>
         <DockPanel Grid.Row="0" Grid.ColumnSpan="3">
-            <Menu DockPanel.Dock="Top">
+            <Menu Height="20" DockPanel.Dock="Top" VerticalAlignment="Top" Background="#FFF0F0F0">
                 <MenuItem Header="Options">
                     <MenuItem Header="Number of Motors:">
                         <MenuItem Header="4" IsCheckable="True" 
@@ -88,8 +89,8 @@
                 <Ellipse x:Name="ConnectionIndicator" Width="10" Height="10" Fill="Red" Margin="10"/>
             </StackPanel>
         </StackPanel>
-        
-        
+
+
 
         <TextBox x:Name="textBoxOperation" Height="20" Grid.Column="1"  Grid.Row="3" Grid.RowSpan="2" VerticalAlignment="Top" Margin="0,0,8,0" 
                  IsReadOnly="True" HorizontalAlignment="Right" Width="430" TextWrapping="Wrap"/>
