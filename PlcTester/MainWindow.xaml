@@ -4,12 +4,15 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PlcTester"
+        xmlns:utilities="clr-namespace:Utilities"
         mc:Ignorable="d"
         Title="PLC Tester" Height="670" Width="1200">
     <Window.DataContext>
         <local:MotorValuesViewModel />
     </Window.DataContext>
-
+    <Window.Resources>
+        <utilities:IntToBooleanConverter x:Key="intToBool"/>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>
@@ -18,6 +21,22 @@
             <ColumnDefinition Width="600"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
+
+        <DockPanel Grid.Row="0" Grid.ColumnSpan="3">
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="Options">
+                    <MenuItem Header="Number of Motors:">
+                        <MenuItem Header="4" IsCheckable="True" 
+                                  IsChecked="{Binding NumberOfMotors, Mode=TwoWay, Converter={StaticResource intToBool},
+                                  ConverterParameter=4}" Click="NumberOfMotorsMenuItem_Click"/>
+                        <MenuItem Header="9" IsCheckable="True" 
+                                  IsChecked="{Binding NumberOfMotors, Mode=TwoWay, Converter={StaticResource intToBool},
+                                  ConverterParameter=9}" Click="NumberOfMotorsMenuItem_Click"/>
+                    </MenuItem>
+                </MenuItem>
+            </Menu>
+        </DockPanel>
+
         <StackPanel Grid.Row="0" Grid.Column="0">
             <TextBlock Text="PLC Tester" FontSize="20" HorizontalAlignment="Center" Margin="10"/>
 
@@ -80,38 +99,9 @@
             <TextBox x:Name="OutputTextBox" IsReadOnly="True" Margin="10" Height="140" VerticalScrollBarVisibility="Auto"/>
         </StackPanel>
 
-        <StackPanel Grid.Column="1" Margin="10,10,0,0">
-            <StackPanel> <!-- StackPanel för Motor 1-->
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock FontWeight="Bold" Text="Motor "/>
-                    <TextBlock FontWeight="Bold" Text="{Binding Motors[0].MotorIndex}"/>
-                    <TextBlock FontWeight="Bold" Text=":"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Position: "/>
-                    <TextBlock Text="{Binding Motors[0].Position}"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Speed: "/>
-                    <TextBlock Text="{Binding Motors[0].Speed}"/>
-                </StackPanel>
-            </StackPanel>
 
-            <StackPanel> <!-- StackPanel för Motor 2-->
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock FontWeight="Bold" Text="Motor "/>
-                    <TextBlock FontWeight="Bold" Text="{Binding Motors[1].MotorIndex}"/>
-                    <TextBlock FontWeight="Bold" Text=":"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Position: "/>
-                    <TextBlock Text="{Binding Motors[1].Position}"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Speed: "/>
-                    <TextBlock Text="{Binding Motors[1].Speed}"/>
-                </StackPanel>
-            </StackPanel>
-        </StackPanel>
+        <WrapPanel x:Name="motorContainer" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="1" Margin="0"
+                   ItemWidth="200" ItemHeight="220"/>
+
     </Grid>
 </Window>
