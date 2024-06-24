@@ -86,7 +86,7 @@ namespace PlcTester
 
         private async Task ListenForResponses()
         {
-            using (var stream = _client.GetStream())
+            using (_stream)
             {
 
                 byte[] buffer = new byte[1024];
@@ -97,9 +97,9 @@ namespace PlcTester
 
                     while (_client.Connected)
                     {
-                        if ((bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+                        while ((bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
                         {
-                            if (bytesRead == 10)
+                            if (bytesRead == 0)
                             {
                                 byte[] response = buffer.Take(bytesRead).ToArray();
                                 string received = BitConverter.ToString(response);

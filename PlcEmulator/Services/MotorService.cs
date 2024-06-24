@@ -25,7 +25,7 @@ namespace PlcEmulator
             }
         }
 
-        private static void AdjustInstances()
+        public static void AdjustInstances()
         {
             int targetCount = GlobalSettings.NumberOfMotors;
             int currentCount = _instances.Count;

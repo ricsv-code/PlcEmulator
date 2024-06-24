@@ -28,7 +28,7 @@ namespace PlcEmulator
         {
             _numberOfMotors = GlobalSettings.NumberOfMotors;
             UpdateWindowDimensions();
-            Motors = new ObservableCollection<MotorViewModel>(MotorService.Instances);
+
         }
 
         private MotorClass _motor;
@@ -40,7 +40,6 @@ namespace PlcEmulator
         }
         public MotorClass Motor => _motor;
 
-        public ObservableCollection<MotorViewModel> Motors { get; private set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
