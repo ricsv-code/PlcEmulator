@@ -95,56 +95,56 @@ namespace PlcTester
         private async Task ListenForResponses()
         {
 
-                    byte[] buffer = new byte[1024];
-                    int bytesRead;
+            byte[] buffer = new byte[1024];
+            int bytesRead;
 
-                    try
+            try
+            {
+                while ((bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+                {
+                    if (bytesRead != 0)
                     {
-                        while ((bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length)) != 0)
-                        {
-                            if (bytesRead != 0)
-                            {
-                                byte[] response = buffer.Take(bytesRead).ToArray();
-                                string received = BitConverter.ToString(response);
+                        byte[] response = buffer.Take(bytesRead).ToArray();
+                        string received = BitConverter.ToString(response);
 
-                                Dispatcher.Invoke(() =>
-                                {
-
-                                    OutputTextBox.AppendText($"Received: {received}\r\n");
-                                    OutputTextBox.ScrollToEnd();
-
-                                });
-
-                                ProcessResponse(response);
-
-                            }
-                        }
-                    }
-                    catch (IOException ex)
-                    {
                         Dispatcher.Invoke(() =>
                         {
-                            OutputTextBox.AppendText($"Error LFR IO: {ex.Message}\r\n");
-                        });
-                    }
-                    catch (ObjectDisposedException ex)
-                    {
-                        Dispatcher.Invoke(() =>
-                        {
-                            OutputTextBox.AppendText($"Error LFR OD: {ex.Message}\r\n");
+
+                            OutputTextBox.AppendText($"Received: {received}\r\n");
+                            OutputTextBox.ScrollToEnd();
 
                         });
-                     }
-                    finally
-                    {
-                        if (_client.Connected)
-                        {
-                            _client.Close();
-                            _isRunning = false;
-                        }
+
+                        ProcessResponse(response);
+
                     }
                 }
-            
+            }
+            catch (IOException ex)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    OutputTextBox.AppendText($"Error LFR IO: {ex.Message}\r\n");
+                });
+            }
+            catch (ObjectDisposedException ex)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    OutputTextBox.AppendText($"Error LFR OD: {ex.Message}\r\n");
+
+                });
+            }
+            finally
+            {
+                if (_client.Connected)
+                {
+                    _client.Close();
+                    _isRunning = false;
+                }
+            }
+        }
+
 
 
         //
@@ -603,12 +603,34 @@ namespace PlcTester
 
             for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
             {
-                var stackPanel = GuiCreators.CreateMotorText("MotorIndex", "Position", "Speed", _viewModel.Motors[i]);
+                var tStackPanel = GuiCreators.CreateMotorText("MotorIndex", "Position", "Speed", _viewModel.Motors[i]);
+                var machineInMotion = GuiCreators.CreateBoolIndicator("MotorInProgress", _viewModel.Motors[i]);
+                var machineIsHomed = GuiCreators.CreateBoolIndicator("MotorIsHomed", _viewModel.Motors[i]);
+                var machineInHome = GuiCreators.CreateBoolIndicator("InHomePosition", _viewModel.Motors[i]);
+                var machineInCenter = GuiCreators.CreateBoolIndicator("InCenteredPosition", _viewModel.Motors[i]);
+                var machineInMax = GuiCreators.CreateBoolIndicator("InMaxPosition", _viewModel.Motors[i]);
+                var machineInMin = GuiCreators.CreateBoolIndicator("InMinPosition", _viewModel.Motors[i]);
+                var error = GuiCreators.CreateBoolIndicator("Error", _viewModel.Motors[i]);
+
+                var stackPanel = new StackPanel();
+                {
+                    stackPanel.Orientation = Orientation.Horizontal;
+                    stackPanel.Children.Add(tStackPanel);
+                    stackPanel.Children.Add(machineInMotion);
+                    stackPanel.Children.Add(machineIsHomed);
+                    stackPanel.Children.Add(machineInHome);
+                    stackPanel.Children.Add(machineInCenter);
+                    stackPanel.Children.Add(machineInMax);
+                    stackPanel.Children.Add(machineInMin);
+                    stackPanel.Children.Add(error);
+
+                }
+
 
                 Dispatcher.Invoke(() =>
-                {
-                    motorContainer.Children.Add(stackPanel);
-                });
+                        {
+                            motorContainer.Children.Add(stackPanel);
+                        });
             }
         }
 

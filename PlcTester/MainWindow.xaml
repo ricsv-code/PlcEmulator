@@ -101,8 +101,8 @@
         </StackPanel>
 
 
-        <WrapPanel x:Name="motorContainer" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="1" Margin="0"
-                   ItemWidth="180" ItemHeight="180"/>
+        <WrapPanel x:Name="motorContainer" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.Column="1" Margin="0"
+                   ItemWidth="580" ItemHeight="30"/>
 
     </Grid>
 </Window>
