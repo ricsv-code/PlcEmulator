@@ -5,18 +5,18 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
-using Utilities;
 using System.Security.RightsManagement;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
+using PlcTester;
 
-namespace PlcEmulator
+namespace Utilities
 {
     public class MotorService //kör fler MotorClass instanser
     {
-        private static readonly List<MotorViewModel> _instances = new List<MotorViewModel> ();
+        private static readonly List<MotorValuesViewModel> _instances = new List<MotorValuesViewModel> ();
 
-        public static MotorViewModel[] Instances
+        public static MotorValuesViewModel[] Instances
         {
             get
             {
@@ -34,12 +34,8 @@ namespace PlcEmulator
             {
                 for (int i = currentCount; i < targetCount; i++)
                 {
-                    var motor = new MotorClass();
-                    motor.HomePosition = 0;
-                    motor.CenterPosition = 3142;
-                    motor.MaxPosition = 6284;
-                    motor.MinPosition = 0;
-                    _instances.Add(new MotorViewModel(motor, i));
+                    var motor = new MotorValues();
+                    _instances.Add(new MotorValuesViewModel(motor, i));
                 }
             }
             else if (currentCount > targetCount)

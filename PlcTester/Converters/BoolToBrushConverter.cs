@@ -22,7 +22,7 @@ namespace Utilities
                     return boolValue ? Brushes.Green : Brushes.Red;
                 }
 
-                return Brushes.Red;
+                return Brushes.Transparent;
             }
             catch (Exception)
             {
@@ -33,7 +33,7 @@ namespace Utilities
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value == null || parameter == null)
-                return 4; //default
+                return Brushes.Blue; 
             bool boolValue = (bool)value;
             int targetValue = int.Parse(parameter.ToString());
 

@@ -345,26 +345,67 @@ namespace PlcEmulator
             }
         }
 
-        //ui-grejer
-        public void UpdateIndicators()
+        public int HomePosition
         {
-            if ((_motor.HiBytePos ?? 0) == 0 && (_motor.LoBytePos ?? 0) == 0)
+            get => _motor.HomePosition;
+            set
             {
-                InHomePosition = true;
-            }
-            else
-            {
-                InHomePosition = false;
-            }
-            if (AbsolutePosition == 3142)
-            {
-                InCenteredPosition = true;
-            }
-            else
-            {
-                InCenteredPosition = false;
+                if (_motor.HomePosition != value)
+                {
+                    _motor.HomePosition = value;
+                    OnPropertyChanged(nameof(HomePosition));
+                    OnPropertyChanged(nameof(InHomePosition));
+                }
             }
         }
+
+        public int CenterPosition
+        {
+            get => _motor.CenterPosition;
+            set
+            {
+                if (_motor.CenterPosition != value)
+                {
+                    _motor.CenterPosition = value;
+                    OnPropertyChanged(nameof(CenterPosition));
+                    OnPropertyChanged(nameof(InCenteredPosition));
+                }
+            }
+        }
+        public int MaxPosition
+        {
+            get => _motor.MaxPosition;
+            set
+            {
+                if (_motor.MaxPosition != value)
+                {
+                    _motor.MaxPosition = value;
+                    OnPropertyChanged(nameof(MaxPosition));
+                }
+            }
+        }
+        public int MinPosition
+        {
+            get => _motor.MinPosition;
+            set
+            {
+                if (_motor.MinPosition != value)
+                {
+                    _motor.MinPosition = value;
+                    OnPropertyChanged(nameof(MinPosition));
+                }
+            }
+        }
+
+        public void UpdateIndicators()
+        {
+            InHomePosition = AbsolutePosition == HomePosition;
+            InCenteredPosition = AbsolutePosition == CenterPosition;
+            InMaxPosition = AbsolutePosition >= MaxPosition;
+            InMinPosition = AbsolutePosition <= MinPosition;
+        }
+
+        //ui-grejer
 
         public int NumberOfMotors
         {

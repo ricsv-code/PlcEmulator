@@ -88,7 +88,39 @@
                 <TextBox x:Name="PortTextBox" Text="502" Width="50" Margin="5"/>
                 <Ellipse x:Name="ConnectionIndicator" Width="10" Height="10" Fill="Red" Margin="10"/>
             </StackPanel>
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="right">
+                            <TextBlock Text="MotorIndex:" VerticalAlignment="Center" Margin="5"/>
+                            <TextBox x:Name="SetMotorIndexTextBox" Text="1" Width="50" Margin="5"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="right">
+                            <TextBlock Text="Home:" VerticalAlignment="Center" Margin="5"/>
+                            <TextBox x:Name="HomePositionTextBox" Text="0" Width="50" Margin="5"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="right">
+                            <TextBlock Text="Center:" VerticalAlignment="Center" Margin="5"/>
+                            <TextBox x:Name="CenterPositionTextBox" Text="3142" Width="50" Margin="5"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="right">
+                            <TextBlock Text="Min:" VerticalAlignment="Center" Margin="5"/>
+                            <TextBox x:Name="MinPositionTextBox" Text="0" Width="50" Margin="5"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="right">
+                            <TextBlock Text="Max:" VerticalAlignment="Center" Margin="5"/>
+                            <TextBox x:Name="MaxPositionTextBox" Text="6284" Width="50" Margin="5"/>
+                        </StackPanel>
+
+                        <Button x:Name="SetMotorButton" Content="Set" HorizontalAlignment="Center" Margin="5" VerticalAlignment="Center" 
+                Width="75" Click="SetMotorButton_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
         </StackPanel>
+
 
 
 

@@ -34,10 +34,8 @@ namespace PlcTester
         {
             InitializeComponent();
             DisconnectButton.IsEnabled = false;
-            _viewModel = new MotorValuesViewModel();
-            this.DataContext = _viewModel;
+            _viewModel = (MotorValuesViewModel)DataContext;
             CreateMotors();
-
         }
 
         private async void ConnectButton_Click(object sender, RoutedEventArgs e)
@@ -53,6 +51,7 @@ namespace PlcTester
 
                 ConnectButton.IsEnabled = false;
                 DisconnectButton.IsEnabled = true;
+                ConnectionIndicator.Fill = Brushes.Green;
 
                 _timer = new DispatcherTimer();
                 _timer.Interval = TimeSpan.FromMilliseconds(1000);
@@ -65,7 +64,7 @@ namespace PlcTester
                 {
 
                     OutputTextBox.AppendText($"Connected to PLC at {ipAddress}:{port}.\r\n");
-                    ConnectionIndicator.Fill = Brushes.Green;
+                    
                 });
             }
             catch (Exception ex)
@@ -399,9 +398,10 @@ namespace PlcTester
             int speed = response[6];
             ProcessError(response[7]);
 
+            var motor = MotorService.Instances[motorIndex];
 
-            _viewModel.Motors[motorIndex].Position = direction * position;
-            _viewModel.Motors[motorIndex].Speed = speed;
+            motor.Position = direction * position;
+            motor.Speed = speed;
 
         }
 
@@ -414,18 +414,20 @@ namespace PlcTester
             int speed = response[6];
             ProcessError(response[7]);
 
-            _viewModel.Motors[motorIndex].Position = direction * position;
-            _viewModel.Motors[motorIndex].Speed = speed;
+            MotorValuesViewModel motor = MotorService.Instances[motorIndex];
+            motor.Position = direction * position;
+            motor.Speed = speed;
 
         }
 
         private void Process103or104or105(byte[] response)
         {
-
             int speed = response[6];
 
-            foreach (var motor in _viewModel.Motors)
+            for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
             {
+                MotorValuesViewModel motor = MotorService.Instances[motorIndex];
+
                 motor.Speed = speed;
             }
 
@@ -439,26 +441,24 @@ namespace PlcTester
             int direction = response[5] == 1 ? -1 : 1;
             int speed = response[4];
 
-            if ((response[6] << 0) == 1)
-                _viewModel.Motors[motorIndex].MotorInProgress = true;
-            if ((response[6] << 1) == 1)
-                _viewModel.Motors[motorIndex].MotorIsHomed = true;
-            if ((response[6] << 2) == 1)
-                _viewModel.Motors[motorIndex].InHomePosition = true;
-            if ((response[6] << 3) == 1)
-                _viewModel.Motors[motorIndex].InCenteredPosition = true;
-            if ((response[6] << 4) == 1)
-                _viewModel.Motors[motorIndex].InMaxPosition = true;
-            if ((response[6] << 5) == 1)
-                _viewModel.Motors[motorIndex].InMinPosition = true;
-            if ((response[6] << 6) == 1)
-                _viewModel.Motors[motorIndex].Error = true;
+            var motor = MotorService.Instances[motorIndex];
+
+            byte whatsThis = response[6];
+
+            motor.MotorInProgress = (whatsThis & (1 << 0)) != 0;
+            motor.MotorIsHomed = (whatsThis & (1 << 1)) != 0;
+            motor.InHomePosition = (whatsThis & (1 << 2)) != 0;
+            motor.InCenteredPosition = (whatsThis & (1 << 3)) != 0;
+            motor.InMaxPosition = (whatsThis & (1 << 4)) != 0;
+            motor.InMinPosition = (whatsThis & (1 << 5)) != 0;
+            motor.Error = (whatsThis & (1 << 6)) != 0;
+            motor.Reserved = (whatsThis & (1 << 7)) != 0;
 
             ProcessError(response[7]);
 
 
-            _viewModel.Motors[motorIndex].Position = direction * position;
-            _viewModel.Motors[motorIndex].Speed = speed;
+            motor.Position = direction * position;
+            motor.Speed = speed;
 
         }
 
@@ -480,32 +480,32 @@ namespace PlcTester
 
         private void Process255(byte[] response)
         {
-            foreach (var motor in _viewModel.Motors)
+            for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
             {
-                if ((response[1] << 0) == 1)
-                    motor.MotorInProgress = true;
-                if ((response[1] << 1) == 1)
-                    motor.MotorInProgress = false; //???????
-                if ((response[1] << 2) == 1)
-                    motor.InCenteredPosition = true;
-                if ((response[1] << 3) == 1)
-                    motor.InHomePosition = true;
-                if ((response[1] << 4) == 1)
-                    motor.OperationMode = true;
-                if ((response[1] << 5) == 1)
-                    motor.OverrideKey = true;
+                MotorValuesViewModel motor = MotorService.Instances[motorIndex];
 
-                if ((response[5] << 0) == 1)
-                    motor.EStop = true;
-                if ((response[5] << 1) == 1)
-                    motor.EStopReset = true;
-                if ((response[5] << 2) == 1)
-                    motor.SickActive = true;
-                if ((response[5] << 3) == 1)
-                    motor.SickReset = true;
-                if ((response[5] << 4) == 1)
-                    motor.ProhibitMovement = true;
+                byte whatsThis = response[1];
+
+                //motor.MotorInProgress = (whatsThis & (1 << 0)) != 0;
+                //motor.MotorInProgress = (whatsThis & (1 << 1)) == 0;
+                //motor.MachineNeedsHoming = (whatsThis & (1 << 2)) != 0;
+                //motor.InCenteredPosition = (whatsThis & (1 << 3)) != 0;
+                //motor.InHomePosition = (whatsThis & (1 << 4)) != 0;
+                //motor.OperationMode = (whatsThis & (1 << 5)) != 0;
+                //motor.OverrideKey = (whatsThis & (1 << 6)) != 0;
+                //motor.Reserved = (whatsThis & (1 << 7)) != 0;
+
+                //byte whatsThisThen = response[5];
+                //motor.EStop = (whatsThisThen & (1 << 0)) != 0;
+                //motor.EStopReset = (whatsThisThen & (1 << 1)) != 0;
+                //motor.SickActive = (whatsThisThen & (1 << 2)) != 0;
+                //motor.SickReset = (whatsThisThen & (1 << 3)) != 0;
+                //motor.ProhibitMovement = (whatsThis & (1 << 4)) != 0;
+
+                //255 borde inte sätta värden på enskilda motorer utan endast användas för sync/errorkoder..
             }
+
+
 
             int systemErrorCode = response[6];
 
@@ -603,14 +603,17 @@ namespace PlcTester
 
             for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
             {
-                var tStackPanel = GuiCreators.CreateMotorText("MotorIndex", "Position", "Speed", _viewModel.Motors[i]);
-                var machineInMotion = GuiCreators.CreateBoolIndicator("MotorInProgress", _viewModel.Motors[i]);
-                var machineIsHomed = GuiCreators.CreateBoolIndicator("MotorIsHomed", _viewModel.Motors[i]);
-                var machineInHome = GuiCreators.CreateBoolIndicator("InHomePosition", _viewModel.Motors[i]);
-                var machineInCenter = GuiCreators.CreateBoolIndicator("InCenteredPosition", _viewModel.Motors[i]);
-                var machineInMax = GuiCreators.CreateBoolIndicator("InMaxPosition", _viewModel.Motors[i]);
-                var machineInMin = GuiCreators.CreateBoolIndicator("InMinPosition", _viewModel.Motors[i]);
-                var error = GuiCreators.CreateBoolIndicator("Error", _viewModel.Motors[i]);
+
+                var motorValuesViewModel = MotorService.Instances[i];
+
+                var tStackPanel = GuiCreators.CreateMotorText("MotorIndex", "Position", "Speed", motorValuesViewModel);
+                var machineInMotion = GuiCreators.CreateBoolIndicator("MotorInProgress", motorValuesViewModel);
+                var machineIsHomed = GuiCreators.CreateBoolIndicator("MotorIsHomed", motorValuesViewModel);
+                var machineInHome = GuiCreators.CreateBoolIndicator("InHomePosition", motorValuesViewModel);
+                var machineInCenter = GuiCreators.CreateBoolIndicator("InCenteredPosition", motorValuesViewModel);
+                var machineInMax = GuiCreators.CreateBoolIndicator("InMaxPosition", motorValuesViewModel);
+                var machineInMin = GuiCreators.CreateBoolIndicator("InMinPosition", motorValuesViewModel);
+                var error = GuiCreators.CreateBoolIndicator("Error", motorValuesViewModel);
 
                 var stackPanel = new StackPanel();
                 {

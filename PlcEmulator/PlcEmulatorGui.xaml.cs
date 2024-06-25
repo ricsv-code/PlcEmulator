@@ -101,7 +101,25 @@ namespace PlcEmulator
             }
         }
 
-        private void UpdateReceivedData(string data)
+        private void SetMotorButton_Click(object sender, RoutedEventArgs e) 
+        {
+            byte motorIndex = byte.Parse(SetMotorIndexTextBox.Text);
+            int homePosition = int.Parse(HomePositionTextBox.Text);
+            int centerPosition = int.Parse(CenterPositionTextBox.Text);
+            int minPosition = int.Parse(MinPositionTextBox.Text);
+            int maxPosition = int.Parse(MaxPositionTextBox.Text);
+
+            var motor = MotorService.Instances[motorIndex - 1];
+
+            motor.HomePosition = homePosition;
+            motor.CenterPosition = centerPosition;
+            motor.MinPosition = minPosition;
+            motor.MaxPosition = maxPosition;
+
+            motor.UpdateIndicators();
+        }
+
+            private void UpdateReceivedData(string data)
         {
             Dispatcher.Invoke(() =>
             {

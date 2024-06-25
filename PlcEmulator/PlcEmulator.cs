@@ -306,7 +306,7 @@ namespace PlcEmulatorCore
                 byte[] response = HandleBaseline(request);
 
                 byte[] result = new byte[1];
-                if (motor.MotorInProgress)
+                if (motor.MachineInMotion) //samma som inprogress
                     result[0] |= 1 << 0;
                 if (motor.MotorIsHomed)
                     result[0] |= 1 << 1;
@@ -381,7 +381,7 @@ namespace PlcEmulatorCore
 
                     if (motor.MachineInMotion)
                         mStatus[0] |= 1 << 0;
-                    if (motor.MachineStill)
+                    if (!motor.MachineInMotion)
                         mStatus[0] |= 1 << 1;
                     if (motor.MachineNeedsHoming)
                         mStatus[0] |= 1 << 2;

@@ -13,6 +13,7 @@
     </Window.DataContext>
     <Window.Resources>
         <utilities:IntToBooleanConverter x:Key="intToBool"/>
+        <utilities:BooleanToBrushConverter x:Key="boolToBrush"/>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -100,9 +101,21 @@
             <TextBox x:Name="OutputTextBox" IsReadOnly="True" Margin="10" Height="140" VerticalScrollBarVisibility="Auto"/>
         </StackPanel>
 
-
-        <WrapPanel x:Name="motorContainer" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.Column="1" Margin="0"
+        <StackPanel Grid.Column="1">
+            <StackPanel Orientation="Horizontal" Margin="10,0,0,0">
+                <TextBlock Text="Position" Width="60" TextAlignment="Center"/>
+                <TextBlock Text="Speed" Width="60" TextAlignment="Center"/>
+                <TextBlock Text="InProgress" Width="60" TextAlignment="Center"/>
+                <TextBlock Text="IsHomed" Width="60" TextAlignment="Center"/>
+                <TextBlock Text="InHome" Width="60" TextAlignment="Center"/>
+                <TextBlock Text="InCenter" Width="60" TextAlignment="Center"/>
+                <TextBlock Text="InMax" Width="60" TextAlignment="Center"/>
+                <TextBlock Text="InMin" Width="60" TextAlignment="Center"/>
+                <TextBlock Text="Error" Width="60" TextAlignment="Center"/>
+            </StackPanel>
+            <WrapPanel x:Name="motorContainer" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.Column="1" Margin="0"
                    ItemWidth="580" ItemHeight="30"/>
+        </StackPanel>
 
     </Grid>
 </Window>

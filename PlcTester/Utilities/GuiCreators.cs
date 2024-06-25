@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Xml.Linq;
 
 namespace Utilities
 {
@@ -26,27 +27,27 @@ namespace Utilities
                 Source = source,
             };
 
-
-            motorBinding.StringFormat = "{0}";
             TextBlock mTextBlock = new TextBlock();
             {
                 mTextBlock.FontWeight = FontWeights.Bold;
                 mTextBlock.SetBinding(TextBlock.TextProperty, motorBinding);
-                mTextBlock.Margin = new Thickness(5, 0, 5, 0);
+                mTextBlock.Margin = new Thickness(0);
             }
 
-            positionBinding.StringFormat = "{0}";
             TextBlock pTextBlock = new TextBlock();
             {
                 pTextBlock.SetBinding(TextBlock.TextProperty, positionBinding);
-                pTextBlock.Margin = new Thickness(5, 0, 5, 0);
+                pTextBlock.Margin = new Thickness(0, 0, 0, 0);
+                pTextBlock.Width = 60;
+                pTextBlock.TextAlignment = TextAlignment.Center;
             }
 
-            speedBinding.StringFormat = "{0}";
             TextBlock sTextBlock = new TextBlock();
             {
                 sTextBlock.SetBinding(TextBlock.TextProperty, speedBinding);
-                sTextBlock.Margin = new Thickness(5, 0, 5, 0);
+                sTextBlock.Margin = new Thickness(0, 0, 0, 0);
+                sTextBlock.Width = 60;
+                sTextBlock.TextAlignment = TextAlignment.Center;
             }
 
             StackPanel stackPanel = new StackPanel();
@@ -70,6 +71,7 @@ namespace Utilities
 
             Button boolButton = new Button();
             boolButton.SetBinding(Button.BackgroundProperty, boolBinding);
+            boolButton.Name = property;
             boolButton.Width = 60;
 
             return boolButton;
