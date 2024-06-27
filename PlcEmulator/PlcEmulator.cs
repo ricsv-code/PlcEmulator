@@ -224,7 +224,7 @@ namespace PlcEmulatorCore
                 {
                     MotorViewModel motor = MotorService.Instances[motorIndex];
 
-                    int centerPos = 3142; //göra denna justerbar?
+                    int centerPos = motor.CenterPosition; //justerbar center
 
                     motor.OperationalSpeed = request[6];
                     motor.TargetPosition = centerPos;

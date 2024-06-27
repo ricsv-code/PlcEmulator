@@ -357,6 +357,9 @@ namespace PlcTester
                 case 106:
                     Process106(response);
                     break;
+                case 107:
+                    Process107(response);
+                    break;
                 case 255:
                     Process255(response);
                     break;
