@@ -171,13 +171,27 @@ namespace PlcEmulatorCore
 
             int motorIndex = request[1] - 1;
 
-            MotorViewModel motor = PlcEmulator.MotorService.Instances[motorIndex];
+            MotorViewModel motor = MotorService.Instances[motorIndex];
 
             int currentPos = motor.AbsolutePosition;
             int moveDistance = (request[2] << 8) | request[3];
             int newPos = currentPos + moveDistance;
 
-            motor.TargetPosition = newPos;
+            if (newPos > motor.MaxPosition)
+            {
+                request[7] = 1;
+                motor.TargetPosition = motor.MaxPosition;
+            }
+            if (newPos < motor.MaxPosition)
+            {
+                request[7] = 2;
+                motor.TargetPosition = motor.MinPosition;
+            }
+            else
+            {
+                motor.TargetPosition = newPos;
+            }
+
             motor.OperationalSpeed = request[6];
 
             _updateImage(motorIndex);
@@ -204,8 +218,22 @@ namespace PlcEmulatorCore
             int targetPos = (request[2] << 8) | request[3];
 
             motor.OperationalSpeed = request[6];
-            motor.TargetPosition = targetPos;
 
+            if (targetPos > motor.MaxPosition)
+            {
+                request[7] = 1;
+                motor.TargetPosition = motor.MaxPosition;
+            }
+            if (targetPos <  motor.MaxPosition)
+            {
+                request[7] = 2;
+                motor.TargetPosition = motor.MinPosition;
+            }
+            else
+            {
+                motor.TargetPosition = targetPos;
+            }
+            
             _updateImage(motorIndex);
 
             byte[] response = HandleBaseline(request);
