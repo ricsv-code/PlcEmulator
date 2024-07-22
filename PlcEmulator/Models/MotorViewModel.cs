@@ -187,15 +187,7 @@ namespace PlcEmulator
 
         public bool MachineStill
         {
-            get => _motor.MachineStill;
-            set
-            {
-                if (_motor.MachineStill != value)
-                {
-                    _motor.MachineStill = value;
-                    OnPropertyChanged(nameof(MachineStill));
-                }
-            }
+            get => !_motor.MachineInMotion;
         }
 
         public bool MachineInMotion
@@ -207,6 +199,7 @@ namespace PlcEmulator
                 {
                     _motor.MachineInMotion = value;
                     OnPropertyChanged(nameof(MachineInMotion));
+                    OnPropertyChanged(nameof(MachineStill));
                 }
             }
         }
