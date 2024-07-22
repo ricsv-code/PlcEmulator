@@ -175,28 +175,29 @@ namespace PlcEmulatorCore
 
             int currentPos = motor.AbsolutePosition;
             int moveDistance = (request[2] << 8) | request[3];
-            int newPos = currentPos + moveDistance;
+            int negatePos = request[5] == 1 ? -1 : 1;
+            int newPos = currentPos + moveDistance * negatePos;
+            motor.OperationalSpeed = request[6];
+            motor.TargetPosition = newPos;
 
-            if (newPos > motor.MaxPosition)
+            byte[] response = HandleBaseline(request);
+
+            if (motor.TargetPosition > motor.MaxPosition)
             {
-                request[7] = 1;
+                response[7] = 1;
                 motor.TargetPosition = motor.MaxPosition;
             }
-            if (newPos < motor.MaxPosition)
+            else if (motor.TargetPosition < motor.MinPosition)
             {
-                request[7] = 2;
+                response[7] = 2;
                 motor.TargetPosition = motor.MinPosition;
             }
-            else
-            {
-                motor.TargetPosition = newPos;
-            }
 
-            motor.OperationalSpeed = request[6];
+
 
             _updateImage(motorIndex);
 
-            byte[] response = HandleBaseline(request);
+            
 
             Helpers.LogSentData(_updateSentData, response, "OP100");
             _updateOperation?.Invoke($"OP100 - 'Move One Motor Relatively' received");
@@ -214,32 +215,30 @@ namespace PlcEmulatorCore
 
             MotorViewModel motor = MotorService.Instances[motorIndex];
 
+            int negatePos = request[5] == 1 ? -1 : 1;
+            int targetPos = ((request[2] << 8) | request[3]) * negatePos;
 
-            int targetPos = (request[2] << 8) | request[3];
 
             motor.OperationalSpeed = request[6];
+            motor.TargetPosition = targetPos;
 
-            if (targetPos > motor.MaxPosition)
+            byte[] response = HandleBaseline(request);
+
+            if (motor.TargetPosition > motor.MaxPosition)
             {
-                request[7] = 1;
+                response[7] = 1;
                 motor.TargetPosition = motor.MaxPosition;
             }
-            if (targetPos <  motor.MaxPosition)
+            else if (motor.TargetPosition <  motor.MinPosition)
             {
-                request[7] = 2;
+                response[7] = 2;
                 motor.TargetPosition = motor.MinPosition;
-            }
-            else
-            {
-                motor.TargetPosition = targetPos;
             }
             
             _updateImage(motorIndex);
 
-            byte[] response = HandleBaseline(request);
-
             Helpers.LogSentData(_updateSentData, response, "OP102");
-            _updateOperation?.Invoke($"OP102 - {targetPos}'Move One Motor to Position' received");
+            _updateOperation?.Invoke($"OP102 - 'Move One Motor to Position' received. {motor.TargetPosition}");
 
             return response;
         }
@@ -279,7 +278,7 @@ namespace PlcEmulatorCore
                 {
                     MotorViewModel motor = MotorService.Instances[motorIndex];
 
-                    int homePos = 0; //gör denna justerbar också
+                    int homePos = motor.HomePosition; 
                     motor.OperationalSpeed = request[6];
                     motor.TargetPosition = homePos;
 
@@ -354,7 +353,7 @@ namespace PlcEmulatorCore
                 response[2] = (byte)motor.HiBytePos;
                 response[3] = (byte)motor.LoBytePos;
                 response[4] = (byte)motor.OperationalSpeed;
-
+                response[5] = (byte)(motor.AbsolutePosition < 0 ? 1 : 0);
                 response[6] = result[0];
 
 
