@@ -316,7 +316,12 @@ namespace PlcEmulator
             {
                 if (Motor.HiBytePos.HasValue && Motor.LoBytePos.HasValue)
                 {
-                    return (int)((Motor.HiBytePos.Value << 8) | Motor.LoBytePos.Value);
+                    int position = (Motor.HiBytePos.Value << 8) | Motor.LoBytePos.Value;
+                    if (position > 32767)
+                    {
+                        position -= 65536;
+                    }
+                    return position;
                 }
                 else
                 {

@@ -150,7 +150,7 @@ namespace PlcEmulator
 
         private void UpdateImage(int motorIndex)
         {
-
+            
             Dispatcher.Invoke(() =>
             {
                 var motor = MotorService.Instances[motorIndex];
@@ -158,6 +158,8 @@ namespace PlcEmulator
 
                 if (motor != null)
                 {
+                    motor.UpdateIndicators();
+
                     if (motor.AbsolutePosition != motor.TargetPosition)
                     {
 
