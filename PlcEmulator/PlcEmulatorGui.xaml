@@ -38,6 +38,7 @@
                                   IsChecked="{Binding NumberOfMotors, Mode=TwoWay, Converter={StaticResource intToBool},
                                   ConverterParameter=9}" Click="NumberOfMotorsMenuItem_Click"/>
                     </MenuItem>
+                    <MenuItem Header="Scripts" Click="ScriptsButton_Click"/>
                 </MenuItem>
             </Menu>
         </DockPanel>

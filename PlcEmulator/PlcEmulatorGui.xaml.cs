@@ -7,6 +7,7 @@ using System.Windows.Media;
 using Utilities;
 using System.Windows.Controls;
 using System.ComponentModel;
+using System;
 
 
 namespace PlcEmulator
@@ -101,7 +102,104 @@ namespace PlcEmulator
             }
         }
 
-        private void SetMotorButton_Click(object sender, RoutedEventArgs e) 
+        private void ScriptsButton_Click(object sender, RoutedEventArgs e)
+        {
+            ScriptDialog dialog = new ScriptDialog();
+
+            if (dialog.ShowDialog() == true)
+            {
+                RunScript(dialog.Scripts);
+            }
+
+        }
+
+        private void RunScript(string scripts)
+        {
+            var lines = scripts.Split(('\n'), StringSplitOptions.RemoveEmptyEntries);
+            foreach (var line in lines)
+            {
+                var parts = line.Split('=');
+
+
+                string key = parts[0].Trim();
+                int index = int.Parse(parts[1].Trim());
+                int val = int.Parse(parts[2].Trim());
+
+
+                if (key.Equals("CenterPosition"))
+                {
+                    if (index == 0)
+                    {
+                        foreach (var motor in MotorService.Instances)
+                        {
+                            motor.CenterPosition = val;
+                            motor.UpdateIndicators();
+                        }
+                    }
+                    else if (index <= MotorService.Instances.Length)
+                    {
+                        MotorService.Instances[index].CenterPosition = val;
+                        MotorService.Instances[index].UpdateIndicators();
+                    }                    
+                }
+
+                if (key.Equals("HomePosition"))
+                {
+                    if (index == 0)
+                    {
+                        foreach (var motor in MotorService.Instances)
+                        {
+                            motor.HomePosition = val;
+                            motor.UpdateIndicators();
+                        }
+                    }
+                    else if (index <= MotorService.Instances.Length)
+                    {
+                        MotorService.Instances[index].HomePosition = val;
+                        MotorService.Instances[index].UpdateIndicators();
+                    }
+                }
+
+                if (key.Equals("MaxPosition"))
+                {
+                    if (index == 0)
+                    {
+                        foreach (var motor in MotorService.Instances)
+                        {
+                            motor.MaxPosition = val;
+                            motor.UpdateIndicators();
+                        }
+                    }
+                    else if (index <= MotorService.Instances.Length)
+                    {
+                        MotorService.Instances[index].MaxPosition = val;
+                        MotorService.Instances[index].UpdateIndicators();
+
+                    }
+                }
+
+                if (key.Equals("MinPosition"))
+                {
+                    if (index == 0)
+                    {
+                        foreach (var motor in MotorService.Instances)
+                        {
+                            motor.MinPosition = val;
+                            motor.UpdateIndicators();
+                        }
+                    }
+                    else if (index <= MotorService.Instances.Length)
+                    {
+                        MotorService.Instances[index].MinPosition = val;
+                        MotorService.Instances[index].UpdateIndicators();
+                    }
+                }
+            }
+
+        }
+
+
+        private void SetMotorButton_Click(object sender, RoutedEventArgs e)
         {
             byte motorIndex = byte.Parse(SetMotorIndexTextBox.Text);
             int homePosition = int.Parse(HomePositionTextBox.Text);
@@ -119,7 +217,7 @@ namespace PlcEmulator
             motor.UpdateIndicators();
         }
 
-            private void UpdateReceivedData(string data)
+        private void UpdateReceivedData(string data)
         {
             Dispatcher.Invoke(() =>
             {
@@ -150,7 +248,7 @@ namespace PlcEmulator
 
         private void UpdateImage(int motorIndex)
         {
-            
+
             Dispatcher.Invoke(() =>
             {
                 var motor = MotorService.Instances[motorIndex];
@@ -200,7 +298,7 @@ namespace PlcEmulator
             if (Math.Abs(currentAngle - targetAngle) > 0.1) //AVRUNDNING borttagen
             {
                 int direction = currentAngle < targetAngle ? 1 : -1;
-                
+
                 int speed = (byte)motor.OperationalSpeed;
 
                 double rotationStep = Math.Min((speed * 0.05), Math.Abs(targetAngle - currentAngle));//overshoot protection
@@ -218,7 +316,7 @@ namespace PlcEmulator
                 }
 
                 _updateMotorImage(motorIndex, currentAngle);
-                
+
 
             }
             else
@@ -227,7 +325,7 @@ namespace PlcEmulator
                 motor.HiBytePos = (byte)((int)Helpers.DegreesToRadians(currentAngle) >> 8);
                 motor.LoBytePos = (byte)((int)Helpers.DegreesToRadians(currentAngle) & 0xFF);
                 motor.UpdateIndicators();
-                
+
                 if (_motorTimers.ContainsKey(motorIndex))
                 {
                     _motorTimers[motorIndex].Stop();
@@ -285,7 +383,7 @@ namespace PlcEmulator
 
             for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
             {
-                var motorImage = new BitmapImage(new Uri("C:\\Users\\risve\\Source\\Repos\\plc_emulator\\PlcEmulator\\Data\\arrow-right.png"));
+                var motorImage = new BitmapImage(new Uri("pack://application:,,,/arrow-right.png"));
 
                 var image = new System.Windows.Controls.Image();
 
