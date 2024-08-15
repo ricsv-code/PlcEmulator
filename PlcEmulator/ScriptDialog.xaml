@@ -5,10 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PlcEmulator"
         mc:Ignorable="d"
-        Title="ScriptDialog" Height="450" Width="800">
+        Title="Script" Height="500" Width="800"
+        Background="#FFF0F0F0">
     <Grid>
         <StackPanel>
             <TextBox x:Name="ScriptContent" Height="300" Width="600" Margin="20" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" AcceptsReturn="True"/>
+            <StackPanel HorizontalAlignment="Center">
+                <TextBlock Text="Commands are set in the format:" FontSize="12"/>
+                <TextBlock Text="PropertyKey = MotorIndex = Value" FontSize="12"/>
+                <TextBlock Text="Valid keys are: HomePosition, CenterPosition, MaxPosition and MinPosition." FontSize="12"/>
+                <TextBlock Text="Values are in 1/1000 radians" FontSize="12"/>
+            </StackPanel>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="20">
                 <Button Content="Go" Click="RunScripts" Height="20" Width="60"/>
                 <Button Content="Cancel" Click="CloseWindow" Height="20" Width="60" Margin="10,0,0,0"/>

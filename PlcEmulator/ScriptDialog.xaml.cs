@@ -29,6 +29,8 @@ namespace PlcEmulator
         {
             InitializeComponent();
 
+            
+
             if (Scripts == null)
             {
                 Scripts =
@@ -39,7 +41,7 @@ namespace PlcEmulator
 
                 ScriptContent.Text = Scripts;
             }
-                    }
+        }
 
         private void RunScripts(object sender, RoutedEventArgs e)
         {
