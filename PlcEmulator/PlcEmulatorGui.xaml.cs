@@ -12,6 +12,7 @@ using System.Net;
 using System.ComponentModel.Design.Serialization;
 using System.Security;
 using System.Windows.Data;
+using System.Windows.Controls.Primitives;
 
 
 namespace PlcEmulator
@@ -21,7 +22,6 @@ namespace PlcEmulator
         private PlcProcess _emulator;
         private Stopwatch _stopwatch;
         private bool _isRunning;
-        private MotorViewModel _viewModel;
         private Dictionary<int, DispatcherTimer> _motorTimers = new Dictionary<int, DispatcherTimer>();
 
         public PlcEmulatorGui()
@@ -30,12 +30,14 @@ namespace PlcEmulator
 
             _emulator = new PlcProcess(UpdateReceivedData, UpdateSentData, UpdateOperation, UpdateImage, ShowStopper);
 
-            root.DataContext = _viewModel;
+            root.DataContext = this;
+
+            _stopwatch = new Stopwatch();
 
             UpdateMenuItems();
             CreateMotorImages();
-
-            buttonStop.IsEnabled = false;
+                        
+            ButtonStop.IsEnabled = false;
         }
 
         private void ButtonStart_Click(object sender, RoutedEventArgs e)
@@ -46,15 +48,15 @@ namespace PlcEmulator
                 {
                     string ipAddress = IpAddressTextBox.Text;
                     int port = int.Parse(PortTextBox.Text);
+ 
+                    
+                    _stopwatch.Restart();
 
-                    _stopwatch = new Stopwatch();
-
-                    _stopwatch.Start();
                     _emulator.Start(ipAddress, port);
                     _isRunning = true;
 
-                    buttonStart.IsEnabled = false;
-                    buttonStop.IsEnabled = true;
+                    ButtonStart.IsEnabled = false;
+                    ButtonStop.IsEnabled = true;
                     ConnectionIndicator.Fill = Brushes.Green;
 
                     textBoxOperation.Text = $"PLC Emulator started..\r\n";
@@ -75,8 +77,8 @@ namespace PlcEmulator
                     _stopwatch.Stop();
                     _emulator.Stop();
                     _isRunning = false;
-                    buttonStart.IsEnabled = true;
-                    buttonStop.IsEnabled = false;
+                    ButtonStart.IsEnabled = true;
+                    ButtonStop.IsEnabled = false;
 
                     ConnectionIndicator.Fill = Brushes.Red;
 
@@ -263,7 +265,8 @@ namespace PlcEmulator
 
             Dispatcher.Invoke(() =>
             {
-                StackPanel stackPanel = imageContainer.Children[motorIndex] as StackPanel;
+                Border border = imageContainer.Children[motorIndex] as Border;
+                StackPanel stackPanel = border.Child as StackPanel;
                 StackPanel iStackPanel = stackPanel.Children[1] as StackPanel;
                 Image image = iStackPanel.Children[1] as Image;
 

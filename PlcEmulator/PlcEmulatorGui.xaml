@@ -69,13 +69,13 @@
 
             <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,0,0,0" Height="20" HorizontalAlignment="Center" VerticalAlignment="Top">
 
-                <Button x:Name="buttonStart" Content="Start" HorizontalAlignment="Left" Margin="5,0,5,0" VerticalAlignment="Top" 
-                Width="75" Click="buttonStart_Click"/>
+                <Button x:Name="ButtonStart" Content="Start" HorizontalAlignment="Left" Margin="5,0,5,0" VerticalAlignment="Top" 
+                Width="75" Click="ButtonStart_Click"/>
 
-                <Button x:Name="buttonStop" Content="Stop" HorizontalAlignment="Left" Margin="5,0,5,0" VerticalAlignment="Top" 
-                Width="75" Click="buttonStop_Click"/>
+                <Button x:Name="ButtonStop" Content="Stop" HorizontalAlignment="Left" Margin="5,0,5,0" VerticalAlignment="Top" 
+                Width="75" Click="ButtonStop_Click"/>
 
-                <Button x:Name="buttonClean" Content="Clean" HorizontalAlignment="Left" Margin="5,0,5,0" VerticalAlignment="Top" 
+                <Button x:Name="ButtonClean" Content="Clean" HorizontalAlignment="Left" Margin="5,0,5,0" VerticalAlignment="Top" 
                 Width="75" Click="CleanButton_Click"/>
 
             </StackPanel>
