@@ -22,14 +22,11 @@ namespace Utilities
             get { return _numberOfMotors; }
             set
             {
-                if (_numberOfMotors != value && (value == 4 || value == 9))
-                {
-                    _numberOfMotors = value;
+                _numberOfMotors = value;
 
-                    NumberOfMotorsChanged?.Invoke(null, EventArgs.Empty);
-                }
+                NumberOfMotorsChanged?.Invoke(null, EventArgs.Empty);
             }
         }
-        
+
     }
 }

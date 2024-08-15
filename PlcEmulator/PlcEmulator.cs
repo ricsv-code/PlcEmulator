@@ -22,8 +22,7 @@ namespace PlcEmulatorCore
         private Action _showStopper;
 
         public List<MotorViewModel> Motors { get; set; } = new List<MotorViewModel>();
-        public int NumberOfMotors { get; set; }
-
+        public int NumberOfMotors => Motors.Count;
         public EmulatorPlc(Action<string> updateReceivedData,
             Action<string> updateSentData, Action<string> updateOperation, Action<int> updateImage, Action showStopper)
         {
@@ -40,8 +39,7 @@ namespace PlcEmulatorCore
             }
 
             GlobalSettings.NumberOfMotorsChanged += HandleNumberOfMotorsChanged;
-
-            NumberOfMotors = GlobalSettings.NumberOfMotors;
+                       
 
         }
 
@@ -52,11 +50,9 @@ namespace PlcEmulatorCore
             for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
             {
                 Motors.Add(new MotorViewModel());
-            }
-
-            NumberOfMotors = GlobalSettings.NumberOfMotors;
-           
+            }          
         }
+
         public void Start(string ipAddress, int port)
         {
             _server = new TcpListener(IPAddress.Parse(ipAddress), port);

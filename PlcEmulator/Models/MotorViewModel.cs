@@ -28,7 +28,6 @@ namespace PlcEmulator
         public MotorClass Motor => _motor;
 
         public event PropertyChangedEventHandler PropertyChanged;
-
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -388,7 +387,6 @@ namespace PlcEmulator
             InMaxPosition = AbsolutePosition >= MaxPosition;
             InMinPosition = AbsolutePosition <= MinPosition;
         }
-
     }
 }
 

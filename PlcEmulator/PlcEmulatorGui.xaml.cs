@@ -10,6 +10,8 @@ using System.ComponentModel;
 using System;
 using System.Net;
 using System.ComponentModel.Design.Serialization;
+using System.Security;
+using System.Windows.Data;
 
 
 namespace PlcEmulator
@@ -19,6 +21,8 @@ namespace PlcEmulator
         private EmulatorPlc _emulator;
         private Stopwatch _stopwatch;
         private bool _isRunning;
+        private MotorViewModel _viewModel;
+
 
         private Dictionary<int, DispatcherTimer> _motorTimers = new Dictionary<int, DispatcherTimer>();
 
@@ -29,11 +33,13 @@ namespace PlcEmulator
 
             _emulator = new EmulatorPlc(UpdateReceivedData, UpdateSentData, UpdateOperation, UpdateImage, ShowStopper);
 
-            root.DataContext = _emulator;
-
+            root.DataContext = _viewModel;
+            UpdateMenuItems();
             CreateMotorImages();
             buttonStop.IsEnabled = false;
+
         }
+
 
         private void buttonStart_Click(object sender, RoutedEventArgs e)
         {
@@ -95,16 +101,26 @@ namespace PlcEmulator
 
         private void NumberOfMotorsMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is MenuItem menuItem && menuItem.IsChecked)
+            if (sender is MenuItem menuItem)
             {
                 if (int.TryParse(menuItem.Header.ToString(), out int numberOfMotors))
                 {
+                    if (GlobalSettings.NumberOfMotors != numberOfMotors)
+                    {
+                        GlobalSettings.NumberOfMotors = numberOfMotors;
 
-                    GlobalSettings.NumberOfMotors = numberOfMotors;
-
-                    CreateMotorImages();
+                        CreateMotorImages();
+                    }
                 }
+
+                UpdateMenuItems();
             }
+        }
+
+        private void UpdateMenuItems()
+        {
+            Menu4.IsChecked = GlobalSettings.NumberOfMotors == 4;
+            Menu9.IsChecked = GlobalSettings.NumberOfMotors == 9;
         }
 
         private void ScriptsButton_Click(object sender, RoutedEventArgs e)
@@ -145,7 +161,7 @@ namespace PlcEmulator
                     {
                         _emulator.Motors[index - 1].CenterPosition = val;
                         _emulator.Motors[index - 1].UpdateIndicators();
-                    }                    
+                    }
                 }
 
                 if (key.Equals("HomePosition"))
@@ -385,8 +401,7 @@ namespace PlcEmulator
                     imageContainer.Children.Remove(child);
                 }
 
-                imageContainer.Rows = (int)Math.Sqrt(GlobalSettings.NumberOfMotors);
-                imageContainer.Columns = (int)Math.Sqrt(GlobalSettings.NumberOfMotors);
+                imageContainer.Columns = imageContainer.Rows = (int)Math.Sqrt(GlobalSettings.NumberOfMotors);
             });
 
 
@@ -411,6 +426,7 @@ namespace PlcEmulator
                 TextBlock mTextBlock = new TextBlock();
                 {
                     mTextBlock.Text = $"Motor: {i + 1}";
+                    mTextBlock.FontWeight = FontWeights.Bold;
                     mTextBlock.HorizontalAlignment = HorizontalAlignment.Center;
                     mTextBlock.VerticalAlignment = VerticalAlignment.Top;
                     mTextBlock.Height = 20;
@@ -449,11 +465,19 @@ namespace PlcEmulator
 
                 StackPanel verticalStackPanel = new StackPanel();
                 {
-
+                    verticalStackPanel.Margin = new Thickness(2);
                     verticalStackPanel.Orientation = Orientation.Vertical;
                     verticalStackPanel.Children.Add(mTextBlock);
                     verticalStackPanel.Children.Add(horizontalStackPanel);
                     verticalStackPanel.Children.Add(iStackPanel);
+                };
+
+                Border border = new Border();
+                {
+                    border.BorderThickness = new Thickness(1);
+                    border.BorderBrush = Brushes.Black;
+                    border.Margin = new Thickness(2);
+                    border.Child = verticalStackPanel;
                 };
 
 
@@ -462,7 +486,7 @@ namespace PlcEmulator
 
                 Dispatcher.Invoke(() =>
                 {
-                    imageContainer.Children.Add(verticalStackPanel);
+                    imageContainer.Children.Add(border);
                 });
 
             }
