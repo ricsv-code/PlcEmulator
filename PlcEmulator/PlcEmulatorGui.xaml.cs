@@ -22,26 +22,23 @@ namespace PlcEmulator
         private Stopwatch _stopwatch;
         private bool _isRunning;
         private MotorViewModel _viewModel;
-
-
         private Dictionary<int, DispatcherTimer> _motorTimers = new Dictionary<int, DispatcherTimer>();
 
         public PlcEmulatorGui()
         {
             InitializeComponent();
 
-
             _emulator = new PlcProcess(UpdateReceivedData, UpdateSentData, UpdateOperation, UpdateImage, ShowStopper);
 
             root.DataContext = _viewModel;
+
             UpdateMenuItems();
             CreateMotorImages();
-            buttonStop.IsEnabled = false;
 
+            buttonStop.IsEnabled = false;
         }
 
-
-        private void buttonStart_Click(object sender, RoutedEventArgs e)
+        private void ButtonStart_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -67,10 +64,9 @@ namespace PlcEmulator
             {
                 textBoxReceivedData.AppendText($"Error: {ex.Message}$\r\n");
             }
-
         }
 
-        private void buttonStop_Click(object sender, RoutedEventArgs e)
+        private void ButtonStop_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -112,7 +108,6 @@ namespace PlcEmulator
                         CreateMotorImages();
                     }
                 }
-
                 UpdateMenuItems();
             }
         }
@@ -132,7 +127,6 @@ namespace PlcEmulator
                 _emulator.RunScript(dialog.Scripts);
             }
         }
-
 
         private void SetMotorButton_Click(object sender, RoutedEventArgs e)
         {
@@ -179,15 +173,11 @@ namespace PlcEmulator
             });
         }
 
-
-
         private void UpdateImage(int motorIndex)
         {
-
             Dispatcher.Invoke(() =>
             {
                 var motor = _emulator.Motors[motorIndex];
-
 
                 if (motor != null)
                 {
@@ -221,7 +211,6 @@ namespace PlcEmulator
             });
         }
 
-
         private void RotateMotor(int motorIndex)
         {
             var motor = _emulator.Motors[motorIndex];
@@ -230,13 +219,13 @@ namespace PlcEmulator
             double targetAngle = Helpers.RadiansToDegrees(motor.TargetPosition);
             double currentAngle = Helpers.RadiansToDegrees(motor.AbsolutePosition);
 
-            if (Math.Abs(currentAngle - targetAngle) > 0.1) //AVRUNDNING borttagen
+            if (Math.Abs(currentAngle - targetAngle) > 0.1) 
             {
                 int direction = currentAngle < targetAngle ? 1 : -1;
 
                 int speed = (byte)motor.OperationalSpeed;
 
-                double rotationStep = Math.Min((speed * 0.05), Math.Abs(targetAngle - currentAngle));//overshoot protection
+                double rotationStep = Math.Min((speed * 0.05), Math.Abs(targetAngle - currentAngle));
 
                 currentAngle += direction * rotationStep;
 
@@ -244,7 +233,7 @@ namespace PlcEmulator
                 motor.LoBytePos = (byte)((int)Helpers.DegreesToRadians(currentAngle) & 0xFF);
                 motor.UpdateIndicators();
 
-                if ((direction > 0 && currentAngle >= targetAngle) || //overshoot protection
+                if ((direction > 0 && currentAngle >= targetAngle) || 
                     (direction < 0 && currentAngle <= targetAngle))
                 {
                     currentAngle = targetAngle;
@@ -276,7 +265,7 @@ namespace PlcEmulator
             {
                 StackPanel stackPanel = imageContainer.Children[motorIndex] as StackPanel;
                 StackPanel iStackPanel = stackPanel.Children[1] as StackPanel;
-                System.Windows.Controls.Image image = iStackPanel.Children[1] as System.Windows.Controls.Image;
+                Image image = iStackPanel.Children[1] as Image;
 
                 if (image != null && image.RenderTransform is RotateTransform rotateTransform)
                 {
@@ -304,10 +293,9 @@ namespace PlcEmulator
             }
         }
 
-
         private void CreateMotorImages()
         {
-            Dispatcher.Invoke(() => //måste vara kvar
+            Dispatcher.Invoke(() => 
             {
                 while (imageContainer.Children.Count > 0)
                 {
@@ -318,13 +306,11 @@ namespace PlcEmulator
                 imageContainer.Columns = imageContainer.Rows = (int)Math.Sqrt(GlobalSettings.NumberOfMotors);
             });
 
-
-
             for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
             {
                 var motorImage = new BitmapImage(new Uri("pack://application:,,,/arrow-right.png"));
 
-                var image = new System.Windows.Controls.Image();
+                var image = new Image();
 
                 var motorViewModel = _emulator.Motors[i];
 
@@ -346,17 +332,14 @@ namespace PlcEmulator
                     mTextBlock.Height = 20;
                 };
 
-
                 var iStackPanel = GuiCreators.CreateInfoText("OperationalSpeed", "AbsolutePosition", motorViewModel);
 
-                //Skapa indicators med bindings
                 var machineInMotionStackPanel = GuiCreators.CreateIndicator("MachineInMotion", motorViewModel);
                 var machineStillStackPanel = GuiCreators.CreateIndicator("MachineStill", motorViewModel);
                 var machineNeedsHomingStackPanel = GuiCreators.CreateIndicator("MachineNeedsHoming", motorViewModel);
                 var machineInCenterStackPanel = GuiCreators.CreateIndicator("InCenteredPosition", motorViewModel);
                 var machineInHomeStackPanel = GuiCreators.CreateIndicator("InHomePosition", motorViewModel);
                 var eButtonPressedStackPanel = GuiCreators.CreateIndicator("EStop", motorViewModel);
-
 
                 StackPanel statusStackPanel = new StackPanel();
                 {
@@ -394,7 +377,6 @@ namespace PlcEmulator
                     border.Child = verticalStackPanel;
                 };
 
-
                 RotateTransform rotateTransform = new RotateTransform(0);
                 image.RenderTransform = rotateTransform;
 
@@ -402,7 +384,6 @@ namespace PlcEmulator
                 {
                     imageContainer.Children.Add(border);
                 });
-
             }
         }
     }
