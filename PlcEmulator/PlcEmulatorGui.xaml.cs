@@ -18,7 +18,7 @@ namespace PlcEmulator
 {
     public partial class PlcEmulatorGui : Window
     {
-        private EmulatorPlc _emulator;
+        private PlcProcess _emulator;
         private Stopwatch _stopwatch;
         private bool _isRunning;
         private MotorViewModel _viewModel;
@@ -31,7 +31,7 @@ namespace PlcEmulator
             InitializeComponent();
 
 
-            _emulator = new EmulatorPlc(UpdateReceivedData, UpdateSentData, UpdateOperation, UpdateImage, ShowStopper);
+            _emulator = new PlcProcess(UpdateReceivedData, UpdateSentData, UpdateOperation, UpdateImage, ShowStopper);
 
             root.DataContext = _viewModel;
             UpdateMenuItems();
@@ -129,94 +129,8 @@ namespace PlcEmulator
 
             if (dialog.ShowDialog() == true)
             {
-                RunScript(dialog.Scripts);
+                _emulator.RunScript(dialog.Scripts);
             }
-
-        }
-
-        private void RunScript(string scripts)
-        {
-            var lines = scripts.Split(('\n'), StringSplitOptions.RemoveEmptyEntries);
-            foreach (var line in lines)
-            {
-                var parts = line.Split('=');
-
-
-                string key = parts[0].Trim();
-                int index = int.Parse(parts[1].Trim());
-                int val = int.Parse(parts[2].Trim());
-
-
-                if (key.Equals("CenterPosition"))
-                {
-                    if (index == 0)
-                    {
-                        foreach (var motor in _emulator.Motors)
-                        {
-                            motor.CenterPosition = val;
-                            motor.UpdateIndicators();
-                        }
-                    }
-                    else if (index < _emulator.Motors.Count)
-                    {
-                        _emulator.Motors[index - 1].CenterPosition = val;
-                        _emulator.Motors[index - 1].UpdateIndicators();
-                    }
-                }
-
-                if (key.Equals("HomePosition"))
-                {
-                    if (index == 0)
-                    {
-                        foreach (var motor in _emulator.Motors)
-                        {
-                            motor.HomePosition = val;
-                            motor.UpdateIndicators();
-                        }
-                    }
-                    else if (index < _emulator.Motors.Count)
-                    {
-                        _emulator.Motors[index - 1].HomePosition = val;
-                        _emulator.Motors[index - 1].UpdateIndicators();
-                    }
-                }
-
-                if (key.Equals("MaxPosition"))
-                {
-                    if (index == 0)
-                    {
-                        foreach (var motor in _emulator.Motors)
-                        {
-                            motor.MaxPosition = val;
-                            motor.UpdateIndicators();
-                        }
-                    }
-                    else if (index < _emulator.Motors.Count)
-                    {
-                        _emulator.Motors[index - 1].MaxPosition = val;
-                        _emulator.Motors[index - 1].UpdateIndicators();
-
-                    }
-                }
-
-                if (key.Equals("MinPosition"))
-                {
-                    if (index == 0)
-                    {
-                        foreach (var motor in _emulator.Motors)
-                        {
-                            motor.MinPosition = val;
-                            motor.UpdateIndicators();
-                        }
-                    }
-                    else if (index < _emulator.Motors.Count)
-                    {
-                        _emulator.Motors[index - 1].MinPosition = val;
-                        _emulator.Motors[index - 1].UpdateIndicators();
-                    }
-                }
-            }
-
         }
 
 

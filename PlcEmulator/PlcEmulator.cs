@@ -11,8 +11,9 @@ using Utilities;
 
 namespace PlcEmulatorCore
 {
-    public class EmulatorPlc
+    public class PlcProcess
     {
+        #region Fields
         private TcpListener _server;
         private bool _isRunning;
         private Action<string> _updateReceivedData;
@@ -21,12 +22,18 @@ namespace PlcEmulatorCore
         private Action<int> _updateImage;
         private Action _showStopper;
 
+        #endregion
+
+        #region Properties
         public List<MotorViewModel> Motors { get; set; } = new List<MotorViewModel>();
         public int NumberOfMotors => Motors.Count;
-        public EmulatorPlc(Action<string> updateReceivedData,
+        #endregion
+
+        #region Constructors
+        public PlcProcess(Action<string> updateReceivedData,
             Action<string> updateSentData, Action<string> updateOperation, Action<int> updateImage, Action showStopper)
         {
-            
+
             _updateReceivedData = updateReceivedData;
             _updateSentData = updateSentData;
             _updateOperation = updateOperation;
@@ -39,20 +46,12 @@ namespace PlcEmulatorCore
             }
 
             GlobalSettings.NumberOfMotorsChanged += HandleNumberOfMotorsChanged;
-                       
+
 
         }
+        #endregion
 
-        private void HandleNumberOfMotorsChanged(object sender, EventArgs e)
-        {
-            Motors.Clear();
-
-            for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
-            {
-                Motors.Add(new MotorViewModel());
-            }          
-        }
-
+        #region Public methods
         public void Start(string ipAddress, int port)
         {
             _server = new TcpListener(IPAddress.Parse(ipAddress), port);
@@ -62,6 +61,100 @@ namespace PlcEmulatorCore
             Task.Run(() => ListenForClients());
         }
 
+        public void Stop()
+        {
+            _isRunning = false;
+            _server.Stop();
+            _server.Dispose();
+        }
+
+        public void RunScript(string scripts)
+        {
+            var lines = scripts.Split(('\n'), StringSplitOptions.RemoveEmptyEntries);
+            foreach (var line in lines)
+            {
+                var parts = line.Split('=');
+
+
+                string key = parts[0].Trim();
+                int index = int.Parse(parts[1].Trim());
+                int val = int.Parse(parts[2].Trim());
+
+
+                if (key.Equals("CenterPosition"))
+                {
+                    if (index == 0)
+                    {
+                        foreach (var motor in Motors)
+                        {
+                            motor.CenterPosition = val;
+                            motor.UpdateIndicators();
+                        }
+                    }
+                    else if (index < Motors.Count)
+                    {
+                        Motors[index - 1].CenterPosition = val;
+                        Motors[index - 1].UpdateIndicators();
+                    }
+                }
+
+                if (key.Equals("HomePosition"))
+                {
+                    if (index == 0)
+                    {
+                        foreach (var motor in Motors)
+                        {
+                            motor.HomePosition = val;
+                            motor.UpdateIndicators();
+                        }
+                    }
+                    else if (index < Motors.Count)
+                    {
+                        Motors[index - 1].HomePosition = val;
+                        Motors[index - 1].UpdateIndicators();
+                    }
+                }
+
+                if (key.Equals("MaxPosition"))
+                {
+                    if (index == 0)
+                    {
+                        foreach (var motor in Motors)
+                        {
+                            motor.MaxPosition = val;
+                            motor.UpdateIndicators();
+                        }
+                    }
+                    else if (index < Motors.Count)
+                    {
+                        Motors[index - 1].MaxPosition = val;
+                        Motors[index - 1].UpdateIndicators();
+
+                    }
+                }
+
+                if (key.Equals("MinPosition"))
+                {
+                    if (index == 0)
+                    {
+                        foreach (var motor in Motors)
+                        {
+                            motor.MinPosition = val;
+                            motor.UpdateIndicators();
+                        }
+                    }
+                    else if (index < Motors.Count)
+                    {
+                        Motors[index - 1].MinPosition = val;
+                        Motors[index - 1].UpdateIndicators();
+                    }
+                }
+            }
+        }
+
+        #endregion
+
+        #region Private methods
         private async Task ListenForClients()
         {
             while (_isRunning)
@@ -220,7 +313,7 @@ namespace PlcEmulatorCore
 
             _updateImage(motorIndex);
 
-            
+
 
             Helpers.LogSentData(_updateSentData, response, "OP100");
             _updateOperation?.Invoke($"OP100 - 'Move One Motor Relatively' received");
@@ -252,12 +345,12 @@ namespace PlcEmulatorCore
                 response[7] = 1;
                 motor.TargetPosition = motor.MaxPosition;
             }
-            else if (motor.TargetPosition <  motor.MinPosition)
+            else if (motor.TargetPosition < motor.MinPosition)
             {
                 response[7] = 2;
                 motor.TargetPosition = motor.MinPosition;
             }
-            
+
             _updateImage(motorIndex);
 
             Helpers.LogSentData(_updateSentData, response, "OP102");
@@ -301,7 +394,7 @@ namespace PlcEmulatorCore
                 {
                     MotorViewModel motor = Motors[motorIndex];
 
-                    int homePos = motor.HomePosition; 
+                    int homePos = motor.HomePosition;
                     motor.OperationalSpeed = request[6];
                     motor.TargetPosition = homePos;
 
@@ -482,11 +575,15 @@ namespace PlcEmulatorCore
             return response;
         }
 
-        public void Stop()
+        private void HandleNumberOfMotorsChanged(object sender, EventArgs e)
         {
-            _isRunning = false;
-            _server.Stop();
-            _server.Dispose();
+            Motors.Clear();
+
+            for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
+            {
+                Motors.Add(new MotorViewModel());
+            }
         }
+        #endregion
     }
 }
