@@ -14,32 +14,18 @@ using System.Threading;
 
 namespace PlcEmulator
 {
-    public class MotorViewModel : INotifyPropertyChanged //binder ui properties till MotorClass instanser
+    public class MotorViewModel : INotifyPropertyChanged 
     {
-
-        private double _windowHeight;
-        private double _windowWidth;
-        private double _motorColumnWidth;
-        private double _motorRowHeight;
-        private int _numberOfMotors;
 
 
         public MotorViewModel()
         {
-            _numberOfMotors = GlobalSettings.NumberOfMotors;
-            UpdateWindowDimensions();
 
         }
 
-        private MotorClass _motor;
-        public int MotorIndex { get; }
-        public MotorViewModel(MotorClass motor, int index)
-        {
-            _motor = motor;
-            MotorIndex = (index + 1);
-        }
+        private MotorClass _motor = new MotorClass();
+
         public MotorClass Motor => _motor;
-
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -402,80 +388,6 @@ namespace PlcEmulator
             InMaxPosition = AbsolutePosition >= MaxPosition;
             InMinPosition = AbsolutePosition <= MinPosition;
         }
-
-        //ui-grejer
-
-        public int NumberOfMotors
-        {
-            get => _numberOfMotors;
-            set
-            {
-                _numberOfMotors = value;
-                OnPropertyChanged(nameof(NumberOfMotors));
-                GlobalSettings.NumberOfMotors = value;
-                UpdateWindowDimensions();
-            }
-        }
-        public double WindowHeights
-        {
-            get => _windowHeight;
-            set
-            {
-                _windowHeight = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public double WindowWidths
-        {
-            get => _windowWidth;
-            set
-            {
-                _windowWidth = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public double MotorColumnWidth
-        {
-            get => _motorColumnWidth;
-            set
-            {
-                _motorColumnWidth = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public double MotorRowHeight
-        {
-            get => _motorRowHeight;
-            set
-            {
-                _motorRowHeight = value;
-                OnPropertyChanged();
-            }
-        }
-
-        private void UpdateWindowDimensions()
-        {
-            if (NumberOfMotors == 4)
-            {
-                WindowHeights = 650;
-                WindowWidths = 1600;
-                MotorColumnWidth = 580;
-                MotorRowHeight = 200;
-
-            }
-            else if (NumberOfMotors == 9)
-            {
-                WindowHeights = 810;
-                WindowWidths = 1860;
-                MotorColumnWidth = 820;
-                MotorRowHeight = 320;
-            }
-        }
-
-
 
     }
 }

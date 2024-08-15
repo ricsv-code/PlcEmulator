@@ -6,26 +6,24 @@
         xmlns:local="clr-namespace:PlcEmulator" 
         xmlns:utilities="clr-namespace:Utilities"
         mc:Ignorable="d" 
-        Title="PLC Emulator" Height="{Binding WindowHeights, Mode=TwoWay}" Width="{Binding WindowWidths, Mode=TwoWay}"
+        Title="PLC Emulator" Height="650" Width="auto"
+        SizeToContent="WidthAndHeight"
         Background="#FFF0F0F0">
-    <Window.DataContext>
-        <local:MotorViewModel />
-    </Window.DataContext>
     <Window.Resources>
         <utilities:IntToBooleanConverter x:Key="intToBool"/>
     </Window.Resources>
 
-    <Grid>
+    <Grid x:Name="root">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="25"/>
             <RowDefinition Height="410"/>
-            <RowDefinition Height="{Binding MotorRowHeight, Mode=TwoWay}"/>
+            <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="445"/>
             <ColumnDefinition Width="445"/>
-            <ColumnDefinition Width="{Binding MotorColumnWidth, Mode=TwoWay}"/>
+            <ColumnDefinition Width="auto"/>
         </Grid.ColumnDefinitions>
         <DockPanel Grid.Row="0" Grid.ColumnSpan="3">
             <Menu Height="20" DockPanel.Dock="Top" VerticalAlignment="Top" Background="#FFF0F0F0">
@@ -62,11 +60,11 @@
              IsReadOnly="True"/>
 
 
-        <WrapPanel x:Name="imageContainer" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.Row="1" Grid.Column="2" Grid.RowSpan="3" Margin="0,20,0,0"
-                   ItemHeight="270" ItemWidth="240"/>
+        <UniformGrid x:Name="imageContainer" Rows="2" Columns="2" Grid.Row="1" Grid.Column="2" Grid.RowSpan="3" 
+                         HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0" Width="Auto"/>
 
         <TextBox x:Name="textBoxImageData" Height="20" Width="180" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Top" 
-                 Margin="0" IsReadOnly="True"/>
+                 Margin="0" IsReadOnly="True" IsHitTestVisible="False"/>
 
         <StackPanel Grid.Row="3" HorizontalAlignment="Center">
 
@@ -126,7 +124,7 @@
 
 
         <TextBox x:Name="textBoxOperation" Height="20" Grid.Column="1"  Grid.Row="3" Grid.RowSpan="2" VerticalAlignment="Top" Margin="0,0,8,0" 
-                 IsReadOnly="True" HorizontalAlignment="Right" Width="430" TextWrapping="Wrap"/>
+                 IsReadOnly="True" HorizontalAlignment="Right" Width="430" TextWrapping="Wrap" IsHitTestVisible="False"/>
     </Grid>
 
 </Window>

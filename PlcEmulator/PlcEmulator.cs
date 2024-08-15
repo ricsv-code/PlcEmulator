@@ -21,19 +21,46 @@ namespace PlcEmulatorCore
         private Action<int> _updateImage;
         private Action _showStopper;
 
-        public EmulatorPlc(string ipAddress, int port, Action<string> updateReceivedData,
+        public List<MotorViewModel> Motors { get; set; } = new List<MotorViewModel>();
+        public int NumberOfMotors { get; set; }
+
+        public EmulatorPlc(Action<string> updateReceivedData,
             Action<string> updateSentData, Action<string> updateOperation, Action<int> updateImage, Action showStopper)
         {
-            _server = new TcpListener(IPAddress.Parse(ipAddress), port);
+            
             _updateReceivedData = updateReceivedData;
             _updateSentData = updateSentData;
             _updateOperation = updateOperation;
             _updateImage = updateImage;
             _showStopper = showStopper;
+
+            for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
+            {
+                Motors.Add(new MotorViewModel());
+            }
+
+            GlobalSettings.NumberOfMotorsChanged += HandleNumberOfMotorsChanged;
+
+            NumberOfMotors = GlobalSettings.NumberOfMotors;
+
         }
 
-        public void Start()
+        private void HandleNumberOfMotorsChanged(object sender, EventArgs e)
         {
+            Motors.Clear();
+
+            for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
+            {
+                Motors.Add(new MotorViewModel());
+            }
+
+            NumberOfMotors = GlobalSettings.NumberOfMotors;
+           
+        }
+        public void Start(string ipAddress, int port)
+        {
+            _server = new TcpListener(IPAddress.Parse(ipAddress), port);
+
             _server.Start();
             _isRunning = true;
             Task.Run(() => ListenForClients());
@@ -171,7 +198,7 @@ namespace PlcEmulatorCore
 
             int motorIndex = request[1] - 1;
 
-            MotorViewModel motor = MotorService.Instances[motorIndex];
+            MotorViewModel motor = Motors[motorIndex];
 
             int currentPos = motor.AbsolutePosition;
             int moveDistance = (request[2] << 8) | request[3];
@@ -213,7 +240,7 @@ namespace PlcEmulatorCore
             }
             int motorIndex = request[1] - 1;
 
-            MotorViewModel motor = MotorService.Instances[motorIndex];
+            MotorViewModel motor = Motors[motorIndex];
 
             int negatePos = request[5] == 1 ? -1 : 1;
             int targetPos = ((request[2] << 8) | request[3]) * negatePos;
@@ -249,7 +276,7 @@ namespace PlcEmulatorCore
             {
                 for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
-                    MotorViewModel motor = MotorService.Instances[motorIndex];
+                    MotorViewModel motor = Motors[motorIndex];
 
                     int centerPos = motor.CenterPosition; //justerbar center
 
@@ -276,7 +303,7 @@ namespace PlcEmulatorCore
             {
                 for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
-                    MotorViewModel motor = MotorService.Instances[motorIndex];
+                    MotorViewModel motor = Motors[motorIndex];
 
                     int homePos = motor.HomePosition; 
                     motor.OperationalSpeed = request[6];
@@ -302,7 +329,7 @@ namespace PlcEmulatorCore
             {
                 for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
-                    MotorViewModel motor = MotorService.Instances[motorIndex];
+                    MotorViewModel motor = Motors[motorIndex];
 
                     //homing
 
@@ -329,7 +356,7 @@ namespace PlcEmulatorCore
             {
                 int motorIndex = request[1] - 1;
 
-                MotorViewModel motor = MotorService.Instances[motorIndex];
+                MotorViewModel motor = Motors[motorIndex];
                 byte[] response = HandleBaseline(request);
 
                 byte[] result = new byte[1];
@@ -404,7 +431,7 @@ namespace PlcEmulatorCore
 
                 for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
-                    MotorViewModel motor = MotorService.Instances[motorIndex];
+                    MotorViewModel motor = Motors[motorIndex];
 
                     if (motor.MachineInMotion)
                         mStatus[0] |= 1 << 0;
@@ -463,6 +490,7 @@ namespace PlcEmulatorCore
         {
             _isRunning = false;
             _server.Stop();
+            _server.Dispose();
         }
     }
 }

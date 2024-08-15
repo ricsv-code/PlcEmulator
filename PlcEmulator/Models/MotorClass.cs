@@ -60,10 +60,10 @@ namespace PlcEmulator
             }
         }
 
-        public int HomePosition { get; set; }
-        public int CenterPosition { get; set; }
-        public int MaxPosition { get; set; }
-        public int MinPosition { get; set; }
+        public int HomePosition { get; set; } = 0;
+        public int CenterPosition { get; set; } = 3142;
+        public int MaxPosition { get; set; } = 6284;
+        public int MinPosition { get; set; } = 0;
 
 
     }

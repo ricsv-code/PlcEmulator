@@ -8,6 +8,8 @@ using Utilities;
 using System.Windows.Controls;
 using System.ComponentModel;
 using System;
+using System.Net;
+using System.ComponentModel.Design.Serialization;
 
 
 namespace PlcEmulator
@@ -17,15 +19,19 @@ namespace PlcEmulator
         private EmulatorPlc _emulator;
         private Stopwatch _stopwatch;
         private bool _isRunning;
-        private MotorViewModel _viewModel;
 
         private Dictionary<int, DispatcherTimer> _motorTimers = new Dictionary<int, DispatcherTimer>();
 
         public PlcEmulatorGui()
         {
             InitializeComponent();
+
+
+            _emulator = new EmulatorPlc(UpdateReceivedData, UpdateSentData, UpdateOperation, UpdateImage, ShowStopper);
+
+            root.DataContext = _emulator;
+
             CreateMotorImages();
-            _viewModel = (MotorViewModel)DataContext;
             buttonStop.IsEnabled = false;
         }
 
@@ -39,10 +45,9 @@ namespace PlcEmulator
                     int port = int.Parse(PortTextBox.Text);
 
                     _stopwatch = new Stopwatch();
-                    _emulator = new EmulatorPlc(ipAddress, port, UpdateReceivedData, UpdateSentData, UpdateOperation, UpdateImage, ShowStopper);
 
                     _stopwatch.Start();
-                    _emulator.Start();
+                    _emulator.Start(ipAddress, port);
                     _isRunning = true;
 
                     buttonStart.IsEnabled = false;
@@ -95,7 +100,7 @@ namespace PlcEmulator
                 if (int.TryParse(menuItem.Header.ToString(), out int numberOfMotors))
                 {
 
-                    _viewModel.NumberOfMotors = numberOfMotors;
+                    GlobalSettings.NumberOfMotors = numberOfMotors;
 
                     CreateMotorImages();
                 }
@@ -130,16 +135,16 @@ namespace PlcEmulator
                 {
                     if (index == 0)
                     {
-                        foreach (var motor in MotorService.Instances)
+                        foreach (var motor in _emulator.Motors)
                         {
                             motor.CenterPosition = val;
                             motor.UpdateIndicators();
                         }
                     }
-                    else if (index <= MotorService.Instances.Length)
+                    else if (index < _emulator.Motors.Count)
                     {
-                        MotorService.Instances[index].CenterPosition = val;
-                        MotorService.Instances[index].UpdateIndicators();
+                        _emulator.Motors[index - 1].CenterPosition = val;
+                        _emulator.Motors[index - 1].UpdateIndicators();
                     }                    
                 }
 
@@ -147,16 +152,16 @@ namespace PlcEmulator
                 {
                     if (index == 0)
                     {
-                        foreach (var motor in MotorService.Instances)
+                        foreach (var motor in _emulator.Motors)
                         {
                             motor.HomePosition = val;
                             motor.UpdateIndicators();
                         }
                     }
-                    else if (index <= MotorService.Instances.Length)
+                    else if (index < _emulator.Motors.Count)
                     {
-                        MotorService.Instances[index].HomePosition = val;
-                        MotorService.Instances[index].UpdateIndicators();
+                        _emulator.Motors[index - 1].HomePosition = val;
+                        _emulator.Motors[index - 1].UpdateIndicators();
                     }
                 }
 
@@ -164,16 +169,16 @@ namespace PlcEmulator
                 {
                     if (index == 0)
                     {
-                        foreach (var motor in MotorService.Instances)
+                        foreach (var motor in _emulator.Motors)
                         {
                             motor.MaxPosition = val;
                             motor.UpdateIndicators();
                         }
                     }
-                    else if (index <= MotorService.Instances.Length)
+                    else if (index < _emulator.Motors.Count)
                     {
-                        MotorService.Instances[index].MaxPosition = val;
-                        MotorService.Instances[index].UpdateIndicators();
+                        _emulator.Motors[index - 1].MaxPosition = val;
+                        _emulator.Motors[index - 1].UpdateIndicators();
 
                     }
                 }
@@ -182,16 +187,16 @@ namespace PlcEmulator
                 {
                     if (index == 0)
                     {
-                        foreach (var motor in MotorService.Instances)
+                        foreach (var motor in _emulator.Motors)
                         {
                             motor.MinPosition = val;
                             motor.UpdateIndicators();
                         }
                     }
-                    else if (index <= MotorService.Instances.Length)
+                    else if (index < _emulator.Motors.Count)
                     {
-                        MotorService.Instances[index].MinPosition = val;
-                        MotorService.Instances[index].UpdateIndicators();
+                        _emulator.Motors[index - 1].MinPosition = val;
+                        _emulator.Motors[index - 1].UpdateIndicators();
                     }
                 }
             }
@@ -207,7 +212,7 @@ namespace PlcEmulator
             int minPosition = int.Parse(MinPositionTextBox.Text);
             int maxPosition = int.Parse(MaxPositionTextBox.Text);
 
-            var motor = MotorService.Instances[motorIndex - 1];
+            var motor = _emulator.Motors[motorIndex - 1];
 
             motor.HomePosition = homePosition;
             motor.CenterPosition = centerPosition;
@@ -251,7 +256,7 @@ namespace PlcEmulator
 
             Dispatcher.Invoke(() =>
             {
-                var motor = MotorService.Instances[motorIndex];
+                var motor = _emulator.Motors[motorIndex];
 
 
                 if (motor != null)
@@ -289,7 +294,7 @@ namespace PlcEmulator
 
         private void RotateMotor(int motorIndex)
         {
-            var motor = MotorService.Instances[motorIndex];
+            var motor = _emulator.Motors[motorIndex];
             if (motor == null) return;
 
             double targetAngle = Helpers.RadiansToDegrees(motor.TargetPosition);
@@ -315,7 +320,7 @@ namespace PlcEmulator
                     currentAngle = targetAngle;
                 }
 
-                _updateMotorImage(motorIndex, currentAngle);
+                UpdateMotorImage(motorIndex, currentAngle);
 
 
             }
@@ -334,7 +339,7 @@ namespace PlcEmulator
             }
         }
 
-        private void _updateMotorImage(int motorIndex, double currentAngle)
+        private void UpdateMotorImage(int motorIndex, double currentAngle)
         {
 
             Dispatcher.Invoke(() =>
@@ -345,10 +350,10 @@ namespace PlcEmulator
 
                 if (image != null && image.RenderTransform is RotateTransform rotateTransform)
                 {
-                    var motor = MotorService.Instances[motorIndex];
+                    var motor = _emulator.Motors[motorIndex];
                     rotateTransform.Angle = currentAngle;
-                    //textBoxImageData.Text = ("Rotated motor " + (motorIndex + 1) + ": " + (int)currentAngle + "°");
-                    textBoxImageData.Text = ("LoByte: " + motor.LoBytePos + " | HiByte: " + motor.HiBytePos);
+                    textBoxImageData.Text = ("Rotated motor " + (motorIndex + 1) + ": " + (int)currentAngle + "°");
+                    //textBoxImageData.Text = ("LoByte: " + motor.LoBytePos + " | HiByte: " + motor.HiBytePos);
                 }
             });
         }
@@ -363,7 +368,7 @@ namespace PlcEmulator
                 }
             }
 
-            foreach (var motor in MotorService.Instances)
+            foreach (var motor in _emulator.Motors)
             {
                 motor.MachineInMotion = false;
             }
@@ -379,7 +384,12 @@ namespace PlcEmulator
                     var child = imageContainer.Children[0];
                     imageContainer.Children.Remove(child);
                 }
+
+                imageContainer.Rows = (int)Math.Sqrt(GlobalSettings.NumberOfMotors);
+                imageContainer.Columns = (int)Math.Sqrt(GlobalSettings.NumberOfMotors);
             });
+
+
 
             for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
             {
@@ -387,7 +397,7 @@ namespace PlcEmulator
 
                 var image = new System.Windows.Controls.Image();
 
-                var motorViewModel = MotorService.Instances[i];
+                var motorViewModel = _emulator.Motors[i];
 
                 motorViewModel.UpdateIndicators();
 
