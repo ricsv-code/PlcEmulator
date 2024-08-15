@@ -1,16 +1,5 @@
-using System;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 using System.ComponentModel;
-using Utilities;
-using System.Security.RightsManagement;
-using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
-using System.Drawing;
-using System.Threading;
 
 namespace PlcEmulator
 {

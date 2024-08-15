@@ -1,12 +1,6 @@
 using System.Globalization;
-using System.Net;
-using System.Net.Sockets;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Data;
-using System.Windows.Media;
-using PlcEmulator;
+
 
 namespace Utilities
 {

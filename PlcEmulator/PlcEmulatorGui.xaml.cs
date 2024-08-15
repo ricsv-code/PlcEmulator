@@ -6,14 +6,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media;
 using Utilities;
 using System.Windows.Controls;
-using System.ComponentModel;
-using System;
-using System.Net;
-using System.ComponentModel.Design.Serialization;
-using System.Security;
-using System.Windows.Data;
-using System.Windows.Controls.Primitives;
-
 
 namespace PlcEmulator
 {
