@@ -8,7 +8,7 @@
         mc:Ignorable="d" 
         Title="PLC Emulator" Height="650" Width="auto"
         SizeToContent="WidthAndHeight"
-        Background="#FFF0F0F0">
+        Background="{StaticResource BackgroundBrush}">
     <Window.Resources>
         <utilities:IntToBooleanConverter x:Key="intToBool"/>
     </Window.Resources>
@@ -25,8 +25,8 @@
             <ColumnDefinition Width="auto"/>
         </Grid.ColumnDefinitions>
         <DockPanel Grid.Row="0" Grid.ColumnSpan="3">
-            <Menu Height="20" DockPanel.Dock="Top" VerticalAlignment="Top" Background="#FFF0F0F0">
-                <MenuItem Header="Options">
+            <Menu Height="20" DockPanel.Dock="Top" VerticalAlignment="Top" Background="{StaticResource MenuBarBrush}">
+                <MenuItem Header="Options" Background="{StaticResource MenuBarBrush}">
                     <MenuItem Header="Number of Motors:">
                         <MenuItem Header="4" IsCheckable="True" Name="Menu4"
                                   IsChecked="{Binding NumberOfMotors, Mode=OneWay, Converter={StaticResource intToBool},

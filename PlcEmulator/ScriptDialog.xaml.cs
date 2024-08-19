@@ -37,6 +37,7 @@ namespace PlcEmulator
 
         private void CloseWindow(object sender, RoutedEventArgs e)
         {
+            this.DialogResult = false;
             this.Close();
         }
     }

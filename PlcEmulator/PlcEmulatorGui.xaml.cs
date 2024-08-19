@@ -367,7 +367,7 @@ namespace PlcEmulator
                 Border border = new Border();
                 {
                     border.BorderThickness = new Thickness(1);
-                    border.BorderBrush = Brushes.Black;
+                    border.BorderBrush = Brushes.Gray;
                     border.Margin = new Thickness(2);
                     border.Child = verticalStackPanel;
                 };
