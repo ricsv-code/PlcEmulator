@@ -5,14 +5,14 @@ namespace PlcEmulator
 
         public PlcMachine(int numberOfMotors)
         {
-            Motors = new List<PlcMotor>();
+            Motors = new List<MotorViewModel>();
 
             for (int _ = 0; _ < numberOfMotors; _++)
             {
-                Motors.Add(new PlcMotor());
+                Motors.Add(new MotorViewModel());
             }
         }
-        public List<PlcMotor> Motors { get; set; }
+        public List<MotorViewModel> Motors { get; set; }
 
         public bool OverrideKey { get; set; }
         public bool OperationMode { get; set; }

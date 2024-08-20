@@ -20,8 +20,7 @@ namespace PlcEmulatorCore
         #endregion
 
         #region Properties
-        public List<MotorViewModel> Motors { get; set; } = new List<MotorViewModel>();
-        public int NumberOfMotors => Motors.Count;
+        public PlcMachine PlcMachine { get; set; }
         #endregion
 
         #region Constructors
@@ -35,10 +34,7 @@ namespace PlcEmulatorCore
             _updateImage = updateImage;
             _showStopper = showStopper;
 
-            for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
-            {
-                Motors.Add(new MotorViewModel());
-            }
+            PlcMachine = new PlcMachine(GlobalSettings.NumberOfMotors);
 
             GlobalSettings.NumberOfMotorsChanged += HandleNumberOfMotorsChanged;
 
@@ -80,16 +76,16 @@ namespace PlcEmulatorCore
                 {
                     if (index == 0)
                     {
-                        foreach (var motor in Motors)
+                        foreach (var motor in PlcMachine.Motors)
                         {
                             motor.CenterPosition = val;
                             motor.UpdateIndicators();
                         }
                     }
-                    else if (index < Motors.Count)
+                    else if (index < PlcMachine.Motors.Count)
                     {
-                        Motors[index - 1].CenterPosition = val;
-                        Motors[index - 1].UpdateIndicators();
+                        PlcMachine.Motors[index - 1].CenterPosition = val;
+                        PlcMachine.Motors[index - 1].UpdateIndicators();
                     }
                 }
 
@@ -97,16 +93,16 @@ namespace PlcEmulatorCore
                 {
                     if (index == 0)
                     {
-                        foreach (var motor in Motors)
+                        foreach (var motor in PlcMachine.Motors)
                         {
                             motor.HomePosition = val;
                             motor.UpdateIndicators();
                         }
                     }
-                    else if (index < Motors.Count)
+                    else if (index < PlcMachine.Motors.Count)
                     {
-                        Motors[index - 1].HomePosition = val;
-                        Motors[index - 1].UpdateIndicators();
+                        PlcMachine.Motors[index - 1].HomePosition = val;
+                        PlcMachine.Motors[index - 1].UpdateIndicators();
                     }
                 }
 
@@ -114,16 +110,16 @@ namespace PlcEmulatorCore
                 {
                     if (index == 0)
                     {
-                        foreach (var motor in Motors)
+                        foreach (var motor in PlcMachine.Motors)
                         {
                             motor.MaxPosition = val;
                             motor.UpdateIndicators();
                         }
                     }
-                    else if (index < Motors.Count)
+                    else if (index < PlcMachine.Motors.Count)
                     {
-                        Motors[index - 1].MaxPosition = val;
-                        Motors[index - 1].UpdateIndicators();
+                        PlcMachine.Motors[index - 1].MaxPosition = val;
+                        PlcMachine.Motors[index - 1].UpdateIndicators();
 
                     }
                 }
@@ -132,16 +128,16 @@ namespace PlcEmulatorCore
                 {
                     if (index == 0)
                     {
-                        foreach (var motor in Motors)
+                        foreach (var motor in PlcMachine.Motors)
                         {
                             motor.MinPosition = val;
                             motor.UpdateIndicators();
                         }
                     }
-                    else if (index < Motors.Count)
+                    else if (index < PlcMachine.Motors.Count)
                     {
-                        Motors[index - 1].MinPosition = val;
-                        Motors[index - 1].UpdateIndicators();
+                        PlcMachine.Motors[index - 1].MinPosition = val;
+                        PlcMachine.Motors[index - 1].UpdateIndicators();
                     }
                 }
             }
@@ -282,7 +278,7 @@ namespace PlcEmulatorCore
 
             int motorIndex = request[1] - 1;
 
-            MotorViewModel motor = Motors[motorIndex];
+            MotorViewModel motor = PlcMachine.Motors[motorIndex];
 
             int currentPos = motor.AbsolutePosition;
             int moveDistance = (request[2] << 8) | request[3];
@@ -324,7 +320,7 @@ namespace PlcEmulatorCore
             }
             int motorIndex = request[1] - 1;
 
-            MotorViewModel motor = Motors[motorIndex];
+            MotorViewModel motor = PlcMachine.Motors[motorIndex];
 
             int negatePos = request[5] == 1 ? -1 : 1;
             int targetPos = ((request[2] << 8) | request[3]) * negatePos;
@@ -360,7 +356,7 @@ namespace PlcEmulatorCore
             {
                 for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
-                    MotorViewModel motor = Motors[motorIndex];
+                    MotorViewModel motor = PlcMachine.Motors[motorIndex];
 
                     int centerPos = motor.CenterPosition; //justerbar center
 
@@ -387,7 +383,7 @@ namespace PlcEmulatorCore
             {
                 for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
-                    MotorViewModel motor = Motors[motorIndex];
+                    MotorViewModel motor = PlcMachine.Motors[motorIndex];
 
                     int homePos = motor.HomePosition;
                     motor.OperationalSpeed = request[6];
@@ -411,10 +407,8 @@ namespace PlcEmulatorCore
         {
             if (request[1] == 0)
             {
-                for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
+                foreach (var motor in  PlcMachine.Motors)
                 {
-                    MotorViewModel motor = Motors[motorIndex];
-
                     //homing
 
                     motor.OperationalSpeed = request[6];
@@ -440,7 +434,7 @@ namespace PlcEmulatorCore
             {
                 int motorIndex = request[1] - 1;
 
-                MotorViewModel motor = Motors[motorIndex];
+                MotorViewModel motor = PlcMachine.Motors[motorIndex];
                 byte[] response = HandleBaseline(request);
 
                 byte[] result = new byte[1];
@@ -515,7 +509,7 @@ namespace PlcEmulatorCore
 
                 for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
-                    MotorViewModel motor = Motors[motorIndex];
+                    MotorViewModel motor = PlcMachine.Motors[motorIndex];
 
                     if (motor.MachineInMotion)
                         mStatus[0] |= 1 << 0;
@@ -572,12 +566,7 @@ namespace PlcEmulatorCore
 
         private void HandleNumberOfMotorsChanged(object sender, EventArgs e)
         {
-            Motors.Clear();
-
-            for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
-            {
-                Motors.Add(new MotorViewModel());
-            }
+            PlcMachine = new PlcMachine(GlobalSettings.NumberOfMotors);
         }
         #endregion
     }

@@ -158,7 +158,7 @@ namespace PlcEmulator
             int minPosition = int.Parse(MinPositionTextBox.Text);
             int maxPosition = int.Parse(MaxPositionTextBox.Text);
 
-            var motor = _emulator.Motors[motorIndex - 1];
+            var motor = _emulator.PlcMachine.Motors[motorIndex - 1];
 
             motor.HomePosition = homePosition;
             motor.CenterPosition = centerPosition;
@@ -199,7 +199,7 @@ namespace PlcEmulator
         {
             Dispatcher.Invoke(() =>
             {
-                var motor = _emulator.Motors[motorIndex];
+                var motor = _emulator.PlcMachine.Motors[motorIndex];
 
                 if (motor != null)
                 {
@@ -235,7 +235,7 @@ namespace PlcEmulator
 
         private void RotateMotor(int motorIndex)
         {
-            var motor = _emulator.Motors[motorIndex];
+            var motor = _emulator.PlcMachine.Motors[motorIndex];
             if (motor == null) return;
 
             double targetAngle = Helpers.RadiansToDegrees(motor.TargetPosition);
@@ -292,7 +292,7 @@ namespace PlcEmulator
 
                 if (image != null && image.RenderTransform is RotateTransform rotateTransform)
                 {
-                    var motor = _emulator.Motors[motorIndex];
+                    var motor = _emulator.PlcMachine.Motors[motorIndex];
                     rotateTransform.Angle = currentAngle;
                     textBoxImageData.Text = ("Rotated motor " + (motorIndex + 1) + ": " + (int)currentAngle + "°");
                     //textBoxImageData.Text = ("LoByte: " + motor.LoBytePos + " | HiByte: " + motor.HiBytePos);
@@ -310,7 +310,7 @@ namespace PlcEmulator
                 }
             }
 
-            foreach (var motor in _emulator.Motors)
+            foreach (var motor in _emulator.PlcMachine.Motors)
             {
                 motor.MachineInMotion = false;
             }
@@ -335,7 +335,7 @@ namespace PlcEmulator
 
                 var image = new Image();
 
-                var motorViewModel = _emulator.Motors[i];
+                var motorViewModel = _emulator.PlcMachine.Motors[i];
 
                 motorViewModel.UpdateIndicators();
 
