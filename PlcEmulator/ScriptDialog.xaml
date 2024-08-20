@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:PlcEmulator"
         mc:Ignorable="d"
         Title="Script" Height="500" Width="800"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{DynamicResource BackgroundBrush}">
     <Grid>
         <StackPanel>
             <TextBox x:Name="ScriptContent" Height="300" Width="600" Margin="20" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" AcceptsReturn="True"/>
