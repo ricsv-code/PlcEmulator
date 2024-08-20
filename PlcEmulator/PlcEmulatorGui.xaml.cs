@@ -15,6 +15,7 @@ namespace PlcEmulator
         private Stopwatch _stopwatch;
         private bool _isRunning;
         private Dictionary<int, DispatcherTimer> _motorTimers = new Dictionary<int, DispatcherTimer>();
+        private bool DarkModeOn;
 
         public PlcEmulatorGui()
         {
@@ -30,6 +31,31 @@ namespace PlcEmulator
             CreateMotorImages();
                         
             ButtonStop.IsEnabled = false;
+        }
+
+
+        private void DarkMode_Click(object sender, RoutedEventArgs e)
+        {
+            ResourceDictionary theme = new ResourceDictionary();
+            theme.Source = new Uri("Resources/DarkTheme.xaml", UriKind.Relative);
+            Application.Current.Resources.MergedDictionaries.Clear();
+            Application.Current.Resources.MergedDictionaries.Add(theme);
+
+            DarkModeOn = true;
+            UpdateMenuItems();
+            UpdateLayout();
+        }
+
+        private void StandardMode_Click(object sender, RoutedEventArgs e)
+        {
+            ResourceDictionary theme = new ResourceDictionary();
+            theme.Source = new Uri("Resources/StandardTheme.xaml", UriKind.Relative);
+            Application.Current.Resources.MergedDictionaries.Clear();
+            Application.Current.Resources.MergedDictionaries.Add(theme);
+
+            DarkModeOn = false;
+            UpdateMenuItems();
+            UpdateLayout();
         }
 
         private void ButtonStart_Click(object sender, RoutedEventArgs e)
@@ -110,6 +136,8 @@ namespace PlcEmulator
         {
             Menu4.IsChecked = GlobalSettings.NumberOfMotors == 4;
             Menu9.IsChecked = GlobalSettings.NumberOfMotors == 9;
+            DarkMode.IsChecked = DarkModeOn;
+            StandardMode.IsChecked = !DarkModeOn;
         }
 
         private void ScriptsButton_Click(object sender, RoutedEventArgs e)

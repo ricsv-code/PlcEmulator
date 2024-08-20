@@ -8,7 +8,7 @@
         mc:Ignorable="d" 
         Title="PLC Emulator" Height="650" Width="auto"
         SizeToContent="WidthAndHeight"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{DynamicResource BackgroundBrush}">
     <Window.Resources>
         <utilities:IntToBooleanConverter x:Key="intToBool"/>
     </Window.Resources>
@@ -25,8 +25,8 @@
             <ColumnDefinition Width="auto"/>
         </Grid.ColumnDefinitions>
         <DockPanel Grid.Row="0" Grid.ColumnSpan="3">
-            <Menu Height="20" DockPanel.Dock="Top" VerticalAlignment="Top" Background="{StaticResource MenuBarBrush}">
-                <MenuItem Header="Options" Background="{StaticResource MenuBarBrush}">
+            <Menu Height="20" DockPanel.Dock="Top" VerticalAlignment="Top" Background="{DynamicResource MenuBarBrush}">
+                <MenuItem Header="Options" Background="{DynamicResource MenuBarBrush}">
                     <MenuItem Header="Number of Motors:">
                         <MenuItem Header="4" IsCheckable="True" Name="Menu4"
                                   IsChecked="{Binding NumberOfMotors, Mode=OneWay, Converter={StaticResource intToBool},
@@ -34,6 +34,10 @@
                         <MenuItem Header="9"  IsCheckable="True" Name="Menu9"
                                   IsChecked="{Binding NumberOfMotors, Mode=OneWay, Converter={StaticResource intToBool},
                                   ConverterParameter=9}" Click="NumberOfMotorsMenuItem_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="Theme:">
+                        <MenuItem Header="Dark" IsCheckable="True" Name="DarkMode" Click="DarkMode_Click"/>
+                        <MenuItem Header="Standard" IsCheckable="True" Name="StandardMode" Click="StandardMode_Click"/>
                     </MenuItem>
                     <MenuItem Header="Scripts" Click="ScriptsButton_Click"/>
                 </MenuItem>

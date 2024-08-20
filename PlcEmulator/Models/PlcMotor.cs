@@ -1,6 +1,6 @@
 namespace PlcEmulator
 {
-    public class MotorClass 
+    public class PlcMotor 
     {
         //Machine Status booleans
         public bool Reserved { get; set; }

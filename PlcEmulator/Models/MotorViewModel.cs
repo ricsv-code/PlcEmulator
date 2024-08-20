@@ -12,9 +12,9 @@ namespace PlcEmulator
 
         }
 
-        private MotorClass _motor = new MotorClass();
+        private PlcMotor _motor = new PlcMotor();
 
-        public MotorClass Motor => _motor;
+        public PlcMotor Motor => _motor;
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
