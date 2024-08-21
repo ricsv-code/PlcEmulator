@@ -275,7 +275,7 @@ namespace PlcEmulator
                 if (_motorTimers.ContainsKey(motorIndex))
                 {
                     _motorTimers[motorIndex].Stop();
-                    motor.MotorInProgress = false;
+                    motor.MachineInMotion = false;
                 }
             }
         }
@@ -312,7 +312,7 @@ namespace PlcEmulator
 
             foreach (var motor in _emulator.PlcMachine.Motors)
             {
-                motor.MotorInProgress = false;
+                motor.MachineInMotion = false;
             }
         }
 
@@ -361,6 +361,7 @@ namespace PlcEmulator
                 var motorInMaxStackPanel = GuiCreators.CreateIndicator("InMaxPosition", motorViewModel);
                 var motorIsHomedStackPanel = GuiCreators.CreateIndicator("MotorIsHomed", motorViewModel);
                 var motorInCenterStackPanel = GuiCreators.CreateIndicator("InCenteredPosition", motorViewModel);
+                var motorInMinStackPanel = GuiCreators.CreateIndicator("InMinPosition", motorViewModel);
                 var motorInHomeStackPanel = GuiCreators.CreateIndicator("InHomePosition", motorViewModel);
                 var motorHasErrorStackPanel = GuiCreators.CreateIndicator("Error", motorViewModel);
 
@@ -368,10 +369,11 @@ namespace PlcEmulator
                 {
                     statusStackPanel.Orientation = Orientation.Vertical;
                     statusStackPanel.Margin = new Thickness(0, 0, 10, 0);
-                    statusStackPanel.Children.Add(motorInProgressStackPanel);
-                    statusStackPanel.Children.Add(motorInMaxStackPanel);
+                    statusStackPanel.Children.Add(motorInProgressStackPanel);                    
                     statusStackPanel.Children.Add(motorIsHomedStackPanel);
                     statusStackPanel.Children.Add(motorInCenterStackPanel);
+                    statusStackPanel.Children.Add(motorInMaxStackPanel);
+                    statusStackPanel.Children.Add(motorInMinStackPanel);
                     statusStackPanel.Children.Add(motorInHomeStackPanel);
                     statusStackPanel.Children.Add(motorHasErrorStackPanel);
                 };
