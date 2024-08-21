@@ -275,7 +275,7 @@ namespace PlcEmulator
                 if (_motorTimers.ContainsKey(motorIndex))
                 {
                     _motorTimers[motorIndex].Stop();
-                    motor.MachineInMotion = false;
+                    motor.MotorInProgress = false;
                 }
             }
         }
@@ -312,7 +312,7 @@ namespace PlcEmulator
 
             foreach (var motor in _emulator.PlcMachine.Motors)
             {
-                motor.MachineInMotion = false;
+                motor.MotorInProgress = false;
             }
         }
 
