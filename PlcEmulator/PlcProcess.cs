@@ -407,7 +407,7 @@ namespace PlcEmulatorCore
         {
             if (request[1] == 0)
             {
-                foreach (var motor in  PlcMachine.Motors)
+                foreach (var motor in PlcMachine.Motors)
                 {
                     //homing
 
@@ -438,7 +438,7 @@ namespace PlcEmulatorCore
                 byte[] response = HandleBaseline(request);
 
                 byte[] result = new byte[1];
-                if (motor.MachineInMotion) //samma som inprogress
+                if (motor.MotorInProgress) 
                     result[0] |= 1 << 0;
                 if (motor.MotorIsHomed)
                     result[0] |= 1 << 1;
@@ -488,9 +488,11 @@ namespace PlcEmulatorCore
         {
             if (request[1] == 0)
             {
-                byte[] mStatus = new byte[1];
-                byte[] oStatus = new byte[1];
                 byte[] response = HandleBaseline(request);
+
+                byte mStatus = response[1];
+                byte oStatus = response[5];
+
 
                 if (request[5] == 1)
                 {
@@ -509,40 +511,26 @@ namespace PlcEmulatorCore
 
                 for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
                 {
-                    MotorViewModel motor = PlcMachine.Motors[motorIndex];
+                    var motor = PlcMachine;
 
-                    if (motor.MachineInMotion)
-                        mStatus[0] |= 1 << 0;
-                    if (!motor.MachineInMotion)
-                        mStatus[0] |= 1 << 1;
-                    if (motor.MachineNeedsHoming)
-                        mStatus[0] |= 1 << 2;
-                    if (motor.InCenteredPosition) //Machine in Center?
-                        mStatus[0] |= 1 << 3;
-                    if (motor.InHomePosition) //Machine in Home?
-                        mStatus[0] |= 1 << 4;
-                    if (motor.OperationMode)
-                        mStatus[0] |= 1 << 5;
-                    if (motor.OverrideKey)
-                        mStatus[0] |= 1 << 6;
-                    if (motor.Reserved)
-                        mStatus[0] |= 1 << 7;
+                    PlcMachine.MachineInMotion = (mStatus & (1 << 0)) != 0;
+                    PlcMachine.MachineStill = (mStatus & (1 << 1)) != 0;
+                    PlcMachine.MachineNeedsHoming = (mStatus & (1 << 2)) != 0;
+                    PlcMachine.MachineInCenter = (mStatus & (1 << 3)) != 0;
+                    PlcMachine.MachineInHome = (mStatus & (1 << 4)) != 0;
+                    PlcMachine.OperationMode = (mStatus & (1 << 5)) != 0;
+                    PlcMachine.OverrideKey = (mStatus & (1 << 6)) != 0;
 
-                    if (motor.EStop)
-                        oStatus[0] |= 1 << 0;
-                    if (motor.EStopReset)
-                        oStatus[0] |= 1 << 1;
-                    if (motor.SickActive)
-                        oStatus[0] |= 1 << 2;
-                    if (motor.SickReset)
-                        oStatus[0] |= 1 << 3;
-                    if (motor.ProhibitMovement)
-                        oStatus[0] |= 1 << 4;
+                    PlcMachine.EStop = (oStatus & (1 << 0)) != 0;
+                    PlcMachine.EStopReset = (oStatus & (1 << 1)) != 0;
+                    PlcMachine.SickActive = (oStatus & (1 << 2)) != 0;
+                    PlcMachine.SickReset = (oStatus & (1 << 3)) != 0;
+                    PlcMachine.ProhibitMovement = (oStatus & (1 << 4)) != 0;
 
                 }
 
-                response[1] = mStatus[0];
-                response[5] = oStatus[0];
+                response[1] = mStatus;
+                response[5] = oStatus;
 
                 response[6] = 0; //System Error Code
                 response[7] = 0; //Command Execution Error

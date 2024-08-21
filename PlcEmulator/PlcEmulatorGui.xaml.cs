@@ -218,7 +218,7 @@ namespace PlcEmulator
                             _motorTimers[motorIndex] = timer;
                         }
 
-                        motor.MachineInMotion = true;
+                        motor.MotorInProgress = true;
                         _motorTimers[motorIndex].Start();
                     }
                     else
@@ -226,7 +226,7 @@ namespace PlcEmulator
                         if (_motorTimers.ContainsKey(motorIndex))
                         {
                             _motorTimers[motorIndex].Stop();
-                            motor.MachineInMotion = false;
+                            motor.MotorInProgress = false;
                         }
                     }
                 }
@@ -275,7 +275,7 @@ namespace PlcEmulator
                 if (_motorTimers.ContainsKey(motorIndex))
                 {
                     _motorTimers[motorIndex].Stop();
-                    motor.MachineInMotion = false;
+                    motor.MotorInProgress = false;
                 }
             }
         }
@@ -312,7 +312,7 @@ namespace PlcEmulator
 
             foreach (var motor in _emulator.PlcMachine.Motors)
             {
-                motor.MachineInMotion = false;
+                motor.MotorInProgress = false;
             }
         }
 
@@ -357,23 +357,23 @@ namespace PlcEmulator
 
                 var iStackPanel = GuiCreators.CreateInfoText("OperationalSpeed", "AbsolutePosition", motorViewModel);
 
-                var machineInMotionStackPanel = GuiCreators.CreateIndicator("MachineInMotion", motorViewModel);
-                var machineStillStackPanel = GuiCreators.CreateIndicator("MachineStill", motorViewModel);
-                var machineNeedsHomingStackPanel = GuiCreators.CreateIndicator("MachineNeedsHoming", motorViewModel);
-                var machineInCenterStackPanel = GuiCreators.CreateIndicator("InCenteredPosition", motorViewModel);
-                var machineInHomeStackPanel = GuiCreators.CreateIndicator("InHomePosition", motorViewModel);
-                var eButtonPressedStackPanel = GuiCreators.CreateIndicator("EStop", motorViewModel);
+                var motorInProgressStackPanel = GuiCreators.CreateIndicator("MotorInProgress", motorViewModel);
+                var motorInMaxStackPanel = GuiCreators.CreateIndicator("InMaxPosition", motorViewModel);
+                var motorIsHomedStackPanel = GuiCreators.CreateIndicator("MotorIsHomed", motorViewModel);
+                var motorInCenterStackPanel = GuiCreators.CreateIndicator("InCenteredPosition", motorViewModel);
+                var motorInHomeStackPanel = GuiCreators.CreateIndicator("InHomePosition", motorViewModel);
+                var motorHasErrorStackPanel = GuiCreators.CreateIndicator("Error", motorViewModel);
 
                 StackPanel statusStackPanel = new StackPanel();
                 {
                     statusStackPanel.Orientation = Orientation.Vertical;
                     statusStackPanel.Margin = new Thickness(0, 0, 10, 0);
-                    statusStackPanel.Children.Add(machineInMotionStackPanel);
-                    statusStackPanel.Children.Add(machineStillStackPanel);
-                    statusStackPanel.Children.Add(machineNeedsHomingStackPanel);
-                    statusStackPanel.Children.Add(machineInCenterStackPanel);
-                    statusStackPanel.Children.Add(machineInHomeStackPanel);
-                    statusStackPanel.Children.Add(eButtonPressedStackPanel);
+                    statusStackPanel.Children.Add(motorInProgressStackPanel);
+                    statusStackPanel.Children.Add(motorInMaxStackPanel);
+                    statusStackPanel.Children.Add(motorIsHomedStackPanel);
+                    statusStackPanel.Children.Add(motorInCenterStackPanel);
+                    statusStackPanel.Children.Add(motorInHomeStackPanel);
+                    statusStackPanel.Children.Add(motorHasErrorStackPanel);
                 };
 
                 StackPanel horizontalStackPanel = new StackPanel();
