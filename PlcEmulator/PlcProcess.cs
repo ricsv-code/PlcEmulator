@@ -11,33 +11,30 @@ namespace PlcEmulatorCore
         #region Fields
         private TcpListener _server;
         private bool _isRunning;
-        private Action<string> _updateReceivedData;
-        private Action<string> _updateSentData;
-        private Action<string> _updateOperation;
-        private Action<int> _updateImage;
-        private Action _showStopper;
+        private Task _listening;
 
+        #endregion
+
+        #region Events
+        public event EventHandler<string> ReceivedData;
+        public event EventHandler<string> ReceivedOpData;
+        public event EventHandler<int> UpdateImage;
+        public event EventHandler ShowStopper;
+        public event EventHandler<string> SentData;
         #endregion
 
         #region Properties
         public PlcMachineViewModel PlcMachine { get; set; }
+
         #endregion
 
         #region Constructors
-        public PlcProcess(Action<string> updateReceivedData,
-            Action<string> updateSentData, Action<string> updateOperation, Action<int> updateImage, Action showStopper)
+        public PlcProcess()
         {
-
-            _updateReceivedData = updateReceivedData;
-            _updateSentData = updateSentData;
-            _updateOperation = updateOperation;
-            _updateImage = updateImage;
-            _showStopper = showStopper;
 
             PlcMachine = new PlcMachineViewModel(GlobalSettings.NumberOfMotors);
 
             GlobalSettings.NumberOfMotorsChanged += HandleNumberOfMotorsChanged;
-
 
         }
         #endregion
@@ -172,7 +169,7 @@ namespace PlcEmulatorCore
                             {
                                 byte[] request = buffer.Take(bytesRead).ToArray();
                                 string receivedData = BitConverter.ToString(request);
-                                _updateReceivedData?.Invoke($"Received: {receivedData}");
+                                ReceivedData?.Invoke(this, $"Received: {receivedData}");
 
                                 byte[] response = ProcessRequest(request);
                                 stream.Write(response, 0, response.Length);
@@ -180,12 +177,12 @@ namespace PlcEmulatorCore
                         }
                         catch (IOException ex)
                         {
-                            _updateReceivedData?.Invoke($"IO Exception: {ex.Message}");
+                            ReceivedData?.Invoke(this, $"IO Exception: {ex.Message}");
                             break;
                         }
                         catch (Exception ex)
                         {
-                            _updateReceivedData?.Invoke($"Exception: {ex.Message}");
+                            ReceivedData?.Invoke(this, $"Exception: {ex.Message}");
                             break;
                         }
                     }
@@ -193,7 +190,7 @@ namespace PlcEmulatorCore
             }
             catch (Exception ex)
             {
-                _updateReceivedData?.Invoke($"Exception in HandleClient: {ex.Message}");
+                ReceivedData?.Invoke(this, $"Exception in HandleClient: {ex.Message}");
             }
             finally
             {
@@ -258,12 +255,13 @@ namespace PlcEmulatorCore
 
         private byte[] HandleOp99(byte[] request)
         {
-            _showStopper();
+            ShowStopper?.Invoke(null, EventArgs.Empty);
 
             byte[] response = HandleBaseline(request);
 
-            Helpers.LogSentData(_updateSentData, response, "OP99");
-            _updateOperation?.Invoke($"OP99 - 'Stop Motion' received");
+            Helpers.LogSentData(SentData, response, "OP99");
+
+            ReceivedOpData?.Invoke(this, $"OP99 - 'Stop Motion' received");
 
             return response;
 
@@ -302,12 +300,11 @@ namespace PlcEmulatorCore
 
 
 
-            _updateImage(motorIndex);
+            UpdateImage?.Invoke(this, motorIndex);
 
 
-
-            Helpers.LogSentData(_updateSentData, response, "OP100");
-            _updateOperation?.Invoke($"OP100 - 'Move One Motor Relatively' received");
+            Helpers.LogSentData(SentData, response, "OP100");
+            ReceivedOpData?.Invoke(this, $"OP100 - 'Move One Motor Relatively' received");
 
             return response;
         }
@@ -342,10 +339,10 @@ namespace PlcEmulatorCore
                 motor.TargetPosition = motor.MinPosition;
             }
 
-            _updateImage(motorIndex);
+            UpdateImage?.Invoke(this, motorIndex);
 
-            Helpers.LogSentData(_updateSentData, response, "OP102");
-            _updateOperation?.Invoke($"OP102 - 'Move One Motor to Position' received. {motor.TargetPosition}");
+            Helpers.LogSentData(SentData, response, "OP102");
+            ReceivedOpData?.Invoke(this, $"OP102 - 'Move One Motor to Position' received. {motor.TargetPosition}");
 
             return response;
         }
@@ -363,13 +360,13 @@ namespace PlcEmulatorCore
                     motor.OperationalSpeed = request[6];
                     motor.TargetPosition = centerPos;
 
-                    _updateImage(motorIndex);
+                    UpdateImage?.Invoke(this, motorIndex);
                 }
 
                 byte[] response = HandleBaseline(request);
 
-                Helpers.LogSentData(_updateSentData, response, "OP103");
-                _updateOperation?.Invoke($"OP103 - 'Go to Center' received");
+                Helpers.LogSentData(SentData, response, "OP103");
+                ReceivedOpData?.Invoke(this, $"OP103 - 'Go to Center' received");
 
                 return response;
             }
@@ -389,14 +386,14 @@ namespace PlcEmulatorCore
                     motor.OperationalSpeed = request[6];
                     motor.TargetPosition = homePos;
 
-                    _updateImage(motorIndex);
+                    UpdateImage?.Invoke(this, motorIndex);
 
                 }
 
                 byte[] response = HandleBaseline(request);
 
-                Helpers.LogSentData(_updateSentData, response, "OP104");
-                _updateOperation?.Invoke($"OP104 - 'Go To Home' received");
+                Helpers.LogSentData(SentData, response, "OP104");
+                ReceivedOpData?.Invoke(this, $"OP104 - 'Go To Home' received");
 
                 return response;
             }
@@ -416,8 +413,8 @@ namespace PlcEmulatorCore
 
                 byte[] response = HandleBaseline(request);
 
-                Helpers.LogSentData(_updateSentData, response, "OP105");
-                _updateOperation?.Invoke($"OP105 - 'Homing' received");
+                Helpers.LogSentData(SentData, response, "OP105");
+                ReceivedOpData?.Invoke(this, $"OP105 - 'Homing' received");
 
                 return response;
             }
@@ -462,7 +459,7 @@ namespace PlcEmulatorCore
                 response[6] = result[0];
 
 
-                Helpers.LogSentData(_updateSentData, response, "OP106");
+                Helpers.LogSentData(SentData, response, "OP106");
 
                 return response;
             }
@@ -478,8 +475,8 @@ namespace PlcEmulatorCore
 
             byte[] response = HandleBaseline(request);
 
-            Helpers.LogSentData(_updateSentData, response, "OP107");
-            _updateOperation?.Invoke($"OP107 - 'Set Digital IO' received");
+            Helpers.LogSentData(SentData, response, "OP107");
+            ReceivedOpData?.Invoke(this, $"OP107 - 'Set Digital IO' received");
 
             return response;
         }
@@ -535,7 +532,7 @@ namespace PlcEmulatorCore
                 response[6] = 0; //System Error Code
                 response[7] = 0; //Command Execution Error
 
-                Helpers.LogSentData(_updateSentData, response, "OP255");
+                Helpers.LogSentData(SentData, response, "OP255");
 
                 return response;
             }
@@ -547,7 +544,7 @@ namespace PlcEmulatorCore
         {
             byte[] response = HandleBaseline(request);
 
-            Helpers.LogSentData(_updateSentData, response, "Unknown OpCode");
+            Helpers.LogSentData(SentData, response, "Unknown OpCode");
 
             return response;
         }

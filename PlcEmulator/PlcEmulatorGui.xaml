@@ -30,23 +30,23 @@
                     <MenuItem Header="Number of Motors:">
                         <MenuItem Header="4" IsCheckable="True" Name="Menu4"
                                   IsChecked="{Binding NumberOfMotors, Mode=OneWay, Converter={StaticResource intToBool},
-                                  ConverterParameter=4}" Click="NumberOfMotorsMenuItem_Click"/>
+                                  ConverterParameter=4}" Command="{Binding NumberOfMotorsCommand}" CommandParameter="4"/>
                         <MenuItem Header="9"  IsCheckable="True" Name="Menu9"
                                   IsChecked="{Binding NumberOfMotors, Mode=OneWay, Converter={StaticResource intToBool},
-                                  ConverterParameter=9}" Click="NumberOfMotorsMenuItem_Click"/>
+                                  ConverterParameter=9}" Command="{Binding NumberOfMotorsCommand}" CommandParameter="9"/>
                     </MenuItem>
                     <MenuItem Header="Theme:">
-                        <MenuItem Header="Dark" IsCheckable="True" Name="DarkMode" Click="DarkMode_Click"/>
-                        <MenuItem Header="Standard" IsCheckable="True" Name="StandardMode" Click="StandardMode_Click"/>
+                        <MenuItem Header="Dark" IsCheckable="True" Name="DarkMode" Command="{Binding DarkModeCommand}"/>
+                        <MenuItem Header="Standard" IsCheckable="True" Name="StandardMode" Command="{Binding StandardCommand}"/>
                     </MenuItem>
-                    <MenuItem Header="Scripts" Click="ScriptsButton_Click"/>
+                    <MenuItem Header="Scripts" Command="{Binding RunScriptsCommand}"/>
                 </MenuItem>
             </Menu>
         </DockPanel>
 
         <TextBlock Margin="10,0,0,0" Height="20" Grid.Column="0" Grid.Row="1" Text="Received:"/>
 
-        <TextBox x:Name="textBoxReceivedData" Grid.Column="0" Grid.Row="2"
+        <TextBox Text="{Binding TextBoxReceivedData}" Grid.Column="0" Grid.Row="2"
              HorizontalAlignment="Left" Height="400" Margin="8,0,0,0" VerticalAlignment="Top" 
              Width="430" 
              TextWrapping="Wrap" 
@@ -55,7 +55,7 @@
 
         <TextBlock Margin="15,0,0,0" Height="20" Grid.Column="1" Grid.Row="1" Text="Sent:"/>
 
-        <TextBox x:Name="textBoxSentData" Grid.Column="1" Grid.Row="2"
+        <TextBox Text="{Binding TextBoxSentData}" Grid.Column="1" Grid.Row="2"
              HorizontalAlignment="Right" Height="400" Margin="0,0,8,0" VerticalAlignment="Top" 
              Width="430" 
              TextWrapping="Wrap" 
@@ -66,7 +66,7 @@
         <UniformGrid x:Name="MotorGrid" Rows="2" Columns="2" Grid.Row="1" Grid.Column="2" Grid.RowSpan="3" 
                          HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0" Width="Auto"/>
 
-        <TextBox x:Name="textBoxImageData" Height="20" Width="180" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Top" 
+        <TextBox Text="{Binding TextBoxImageData}" Height="20" Width="180" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Top" 
                  Margin="0" IsReadOnly="True" IsHitTestVisible="False"/>
 
         <StackPanel Grid.Row="3" HorizontalAlignment="Center">
@@ -74,13 +74,13 @@
             <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,0,0,0" Height="20" HorizontalAlignment="Center" VerticalAlignment="Top">
 
                 <Button x:Name="ButtonStart" Content="Start" HorizontalAlignment="Left" Margin="5,0,5,0" VerticalAlignment="Top" 
-                Width="75" Click="ButtonStart_Click"/>
+                Width="75" Command="{Binding StartCommand}"/>
 
                 <Button x:Name="ButtonStop" Content="Stop" HorizontalAlignment="Left" Margin="5,0,5,0" VerticalAlignment="Top" 
-                Width="75" Click="ButtonStop_Click"/>
+                Width="75" Command="{Binding StopCommand}"/>
 
                 <Button x:Name="ButtonClean" Content="Clean" HorizontalAlignment="Left" Margin="5,0,5,0" VerticalAlignment="Top" 
-                Width="75" Click="CleanButton_Click"/>
+                Width="75" Command="{Binding CleanCommand}"/>
 
             </StackPanel>
             <StackPanel Orientation="Horizontal" Height="30" VerticalAlignment="Top">
@@ -117,7 +117,7 @@
                         </StackPanel>
 
                         <Button x:Name="SetMotorButton" Content="Set" HorizontalAlignment="Center" Margin="5" VerticalAlignment="Center" 
-                Width="75" Click="SetMotorButton_Click"/>
+                Width="75" Command="{Binding SetMotorPropertiesCommand}"/>
                     </StackPanel>
                 </StackPanel>
             </StackPanel>
@@ -126,7 +126,7 @@
 
 
 
-        <TextBox x:Name="textBoxOperation" Height="20" Grid.Column="1"  Grid.Row="3" Grid.RowSpan="2" VerticalAlignment="Top" Margin="0,0,8,0" 
+        <TextBox Text="{Binding TextBoxOperation}" Height="20" Grid.Column="1"  Grid.Row="3" Grid.RowSpan="2" VerticalAlignment="Top" Margin="0,0,8,0" 
                  IsReadOnly="True" HorizontalAlignment="Right" Width="430" TextWrapping="Wrap" IsHitTestVisible="False"/>
     </Grid>
 

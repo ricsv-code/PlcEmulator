@@ -1,4 +1,6 @@
 
+using System.Runtime.CompilerServices;
+
 namespace Utilities
 {
     public static class Helpers
@@ -22,11 +24,11 @@ namespace Utilities
             return (byte)data.Take(9).Sum(b => b);
         }
 
-        public static void LogSentData(Action<string> updateSentData, byte[] response, string opCode)
+        public static void LogSentData(EventHandler<string> updateSentData, byte[] response, string opCode)
         {
             response[9] = Helpers.CalculateChecksum(response);
             string sentData = BitConverter.ToString(response);
-            updateSentData?.Invoke($"Sent {opCode} response: {sentData}");
+            updateSentData?.Invoke(null, $"Sent {opCode} response: {sentData}");
         }
     }
 }

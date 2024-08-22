@@ -128,7 +128,7 @@ namespace PlcEmulator
             }
         }
 
-        public byte? OperationalSpeed
+        public byte OperationalSpeed
         {
             get => _motor.OperationalSpeed ?? 0;
             set

@@ -1,6 +1,7 @@
 ﻿using System.Configuration;
 using System.Data;
 using System.Windows;
+using PlcEmulatorCore;
 
 namespace PlcEmulator
 {
@@ -9,6 +10,12 @@ namespace PlcEmulator
     /// </summary>
     public partial class App : Application
     {
+
+        private void ApplicationStartup(object sender, StartupEventArgs e)
+        {
+            new PlcWpfProcess();
+
+        }
     }
 
 }
