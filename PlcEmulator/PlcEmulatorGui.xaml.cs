@@ -6,6 +6,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media;
 using Utilities;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Controls.Primitives;
 
 namespace PlcEmulator
 {
@@ -29,7 +31,7 @@ namespace PlcEmulator
 
             UpdateMenuItems();
             CreateMotorImages();
-                        
+
             ButtonStop.IsEnabled = false;
         }
 
@@ -66,8 +68,8 @@ namespace PlcEmulator
                 {
                     string ipAddress = IpAddressTextBox.Text;
                     int port = int.Parse(PortTextBox.Text);
- 
-                    
+
+
                     _stopwatch.Restart();
 
                     _emulator.Start(ipAddress, port);
@@ -241,7 +243,7 @@ namespace PlcEmulator
             double targetAngle = Helpers.RadiansToDegrees(motor.TargetPosition);
             double currentAngle = Helpers.RadiansToDegrees(motor.AbsolutePosition);
 
-            if (Math.Abs(currentAngle - targetAngle) > 0.1) 
+            if (Math.Abs(currentAngle - targetAngle) > 0.1)
             {
                 int direction = currentAngle < targetAngle ? 1 : -1;
 
@@ -255,14 +257,13 @@ namespace PlcEmulator
                 motor.LoBytePos = (byte)((int)Helpers.DegreesToRadians(currentAngle) & 0xFF);
                 motor.UpdateIndicators();
 
-                if ((direction > 0 && currentAngle >= targetAngle) || 
+                if ((direction > 0 && currentAngle >= targetAngle) ||
                     (direction < 0 && currentAngle <= targetAngle))
                 {
                     currentAngle = targetAngle;
                 }
 
                 UpdateMotorImage(motorIndex, currentAngle);
-
 
             }
             else
@@ -282,21 +283,12 @@ namespace PlcEmulator
 
         private void UpdateMotorImage(int motorIndex, double currentAngle)
         {
-
             Dispatcher.Invoke(() =>
             {
-                Border border = imageContainer.Children[motorIndex] as Border;
-                StackPanel stackPanel = border.Child as StackPanel;
-                StackPanel iStackPanel = stackPanel.Children[1] as StackPanel;
-                Image image = iStackPanel.Children[1] as Image;
-
-                if (image != null && image.RenderTransform is RotateTransform rotateTransform)
-                {
-                    var motor = _emulator.PlcMachine.Motors[motorIndex];
-                    rotateTransform.Angle = currentAngle;
-                    textBoxImageData.Text = ("Rotated motor " + (motorIndex + 1) + ": " + (int)currentAngle + "°");
-                    //textBoxImageData.Text = ("LoByte: " + motor.LoBytePos + " | HiByte: " + motor.HiBytePos);
-                }
+                var motor = _emulator.PlcMachine.Motors[motorIndex];
+                motor.RotationAngle = currentAngle;
+                textBoxImageData.Text = ("Rotated motor " + (motorIndex + 1) + ": " + (int)currentAngle + "°");
+                //textBoxImageData.Text = ("LoByte: " + motor.LoBytePos + " | HiByte: " + motor.HiBytePos);
             });
         }
 
@@ -318,16 +310,8 @@ namespace PlcEmulator
 
         private void CreateMotorImages()
         {
-            Dispatcher.Invoke(() => 
-            {
-                while (imageContainer.Children.Count > 0)
-                {
-                    var child = imageContainer.Children[0];
-                    imageContainer.Children.Remove(child);
-                }
-
-                imageContainer.Columns = imageContainer.Rows = (int)Math.Sqrt(GlobalSettings.NumberOfMotors);
-            });
+            MotorGrid.Children.Clear();
+            MotorGrid.Columns = _emulator.PlcMachine.MotorGrid.Rows = (int)Math.Sqrt(GlobalSettings.NumberOfMotors);
 
             for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
             {
@@ -337,13 +321,16 @@ namespace PlcEmulator
 
                 var motorViewModel = _emulator.PlcMachine.Motors[i];
 
-                motorViewModel.UpdateIndicators();
+                RotateTransform rotateTransform = new RotateTransform(0);
+
+                BindingOperations.SetBinding(rotateTransform, RotateTransform.AngleProperty, GuiCreators.CreateBinding("RotationAngle", motorViewModel));
 
                 image.Source = motorImage;
                 {
                     image.Width = 100;
                     image.Height = 100;
                     image.RenderTransformOrigin = new System.Windows.Point(0.5, 0.5);
+                    image.RenderTransform = rotateTransform;
                 };
 
                 TextBlock mTextBlock = new TextBlock();
@@ -369,7 +356,7 @@ namespace PlcEmulator
                 {
                     statusStackPanel.Orientation = Orientation.Vertical;
                     statusStackPanel.Margin = new Thickness(0, 0, 10, 0);
-                    statusStackPanel.Children.Add(motorInProgressStackPanel);                    
+                    statusStackPanel.Children.Add(motorInProgressStackPanel);
                     statusStackPanel.Children.Add(motorIsHomedStackPanel);
                     statusStackPanel.Children.Add(motorInCenterStackPanel);
                     statusStackPanel.Children.Add(motorInMaxStackPanel);
@@ -402,13 +389,10 @@ namespace PlcEmulator
                     border.Child = verticalStackPanel;
                 };
 
-                RotateTransform rotateTransform = new RotateTransform(0);
-                image.RenderTransform = rotateTransform;
+                motorViewModel.UpdateIndicators();
 
-                Dispatcher.Invoke(() =>
-                {
-                    imageContainer.Children.Add(border);
-                });
+                MotorGrid.Children.Add(border);
+
             }
         }
     }

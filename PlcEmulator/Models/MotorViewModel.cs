@@ -3,24 +3,19 @@ using System.Runtime.CompilerServices;
 
 namespace PlcEmulator
 {
-    public class MotorViewModel : INotifyPropertyChanged 
+    public class MotorViewModel : ViewModelBase
     {
 
 
         public MotorViewModel()
         {
-
+            _motor = new PlcMotor();
         }
 
-        private PlcMotor _motor = new PlcMotor();
+        private PlcMotor _motor;
 
         public PlcMotor Motor => _motor;
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
         public bool Reserved
         {
             get => _motor.Reserved;
@@ -120,128 +115,19 @@ namespace PlcEmulator
             }
         }
 
-        public bool OverrideKey
+        public double RotationAngle
         {
-            get => _motor.OverrideKey;
+            get => _motor.RotationAngle;
             set
             {
-                if (_motor.OverrideKey != value)
+                if (_motor.RotationAngle != value)
                 {
-                    _motor.OverrideKey = value;
-                    OnPropertyChanged(nameof(OverrideKey));
+                    _motor.RotationAngle = value;
+                    OnPropertyChanged(nameof(RotationAngle));
                 }
             }
         }
 
-        public bool OperationMode
-        {
-            get => _motor.OperationMode;
-            set
-            {
-                if (_motor.OperationMode != value)
-                {
-                    _motor.OperationMode = value;
-                    OnPropertyChanged(nameof(OperationMode));
-                }
-            }
-        }
-
-        public bool MachineNeedsHoming
-        {
-            get => _motor.MachineNeedsHoming;
-            set
-            {
-                if (_motor.MachineNeedsHoming != value)
-                {
-                    _motor.MachineNeedsHoming = value;
-                    OnPropertyChanged(nameof(MachineNeedsHoming));
-                }
-            }
-        }
-
-        public bool MachineStill
-        {
-            get => !_motor.MachineInMotion;
-        }
-
-        public bool MachineInMotion
-        {
-            get => _motor.MachineInMotion;
-            set
-            {
-                if (_motor.MachineInMotion != value)
-                {
-                    _motor.MachineInMotion = value;
-                    OnPropertyChanged(nameof(MachineInMotion));
-                    OnPropertyChanged(nameof(MachineStill));
-                }
-            }
-        }
-
-        public bool ProhibitMovement
-        {
-            get => _motor.ProhibitMovement;
-            set
-            {
-                if (_motor.ProhibitMovement != value)
-                {
-                    _motor.ProhibitMovement = value;
-                    OnPropertyChanged(nameof(ProhibitMovement));
-                }
-            }
-        }
-
-        public bool SickReset
-        {
-            get => _motor.SickReset;
-            set
-            {
-                if (_motor.SickReset != value)
-                {
-                    _motor.SickReset = value;
-                    OnPropertyChanged(nameof(SickReset));
-                }
-            }
-        }
-
-        public bool SickActive
-        {
-            get => _motor.SickActive;
-            set
-            {
-                if (_motor.SickActive != value)
-                {
-                    _motor.SickActive = value;
-                    OnPropertyChanged(nameof(SickActive));
-                }
-            }
-        }
-
-        public bool EStopReset
-        {
-            get => _motor.EStopReset;
-            set
-            {
-                if (_motor.EStopReset != value)
-                {
-                    _motor.EStopReset = value;
-                    OnPropertyChanged(nameof(EStopReset));
-                }
-            }
-        }
-
-        public bool EStop
-        {
-            get => _motor.EStop;
-            set
-            {
-                if (_motor.EStop != value)
-                {
-                    _motor.EStop = value;
-                    OnPropertyChanged(nameof(EStop));
-                }
-            }
-        }
         public byte? OperationalSpeed
         {
             get => _motor.OperationalSpeed ?? 0;

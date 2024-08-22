@@ -1,33 +1,31 @@
+using System.Windows.Controls.Primitives;
+
 namespace PlcEmulator
 {
     public class PlcMachine
     {
 
-        public PlcMachine(int numberOfMotors)
+        public PlcMachine()
         {
-            Motors = new List<MotorViewModel>();
-
-            for (int _ = 0; _ < numberOfMotors; _++)
-            {
-                Motors.Add(new MotorViewModel());
-            }
+            MotorGrid = new UniformGrid();
         }
-        public List<MotorViewModel> Motors { get; set; }
 
-        public bool OverrideKey { get; set; }
-        public bool OperationMode { get; set; }
-        public bool MachineNeedsHoming { get; set; }
-        public bool MachineInCenter { get; set; }
-        public bool MachineStill { get; set; }
-        public bool MachineInMotion { get; set; }
-        public bool MachineInHome { get; set; }
+        public bool OverrideKey;
+        public bool OperationMode;
+        public bool MachineNeedsHoming;
+        public bool MachineInCenter;
+        public bool MachineStill;
+        public bool MachineInMotion;
+        public bool MachineInHome;
 
         //Status byte 5 on code 255
-        public bool ProhibitMovement { get; set; }
-        public bool SickReset { get; set; }
-        public bool SickActive { get; set; }
-        public bool EStopReset { get; set; }
-        public bool EStop { get; set; }
+        public bool ProhibitMovement;
+        public bool SickReset;
+        public bool SickActive;
+        public bool EStopReset;
+        public bool EStop;
+
+        public UniformGrid MotorGrid;
 
     }
 }

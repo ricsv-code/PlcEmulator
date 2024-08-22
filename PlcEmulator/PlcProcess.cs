@@ -20,7 +20,7 @@ namespace PlcEmulatorCore
         #endregion
 
         #region Properties
-        public PlcMachine PlcMachine { get; set; }
+        public PlcMachineViewModel PlcMachine { get; set; }
         #endregion
 
         #region Constructors
@@ -34,7 +34,7 @@ namespace PlcEmulatorCore
             _updateImage = updateImage;
             _showStopper = showStopper;
 
-            PlcMachine = new PlcMachine(GlobalSettings.NumberOfMotors);
+            PlcMachine = new PlcMachineViewModel(GlobalSettings.NumberOfMotors);
 
             GlobalSettings.NumberOfMotorsChanged += HandleNumberOfMotorsChanged;
 
@@ -554,7 +554,7 @@ namespace PlcEmulatorCore
 
         private void HandleNumberOfMotorsChanged(object sender, EventArgs e)
         {
-            PlcMachine = new PlcMachine(GlobalSettings.NumberOfMotors);
+            PlcMachine = new PlcMachineViewModel(GlobalSettings.NumberOfMotors);
         }
         #endregion
     }

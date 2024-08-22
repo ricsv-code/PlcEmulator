@@ -12,22 +12,7 @@ namespace PlcEmulator
         public bool MotorIsHomed { get; set; }
         public bool MotorInProgress { get; set; }
 
-        //
-        public bool OverrideKey { get; set; }
-        public bool OperationMode { get; set; }
-        public bool MachineNeedsHoming { get; set; }
-        public bool MachineStill { get; set; }
-        public bool MachineInMotion { get; set; }
-        //
-
-        //Status byte 5 on code 255
-        public bool ProhibitMovement { get; set; }
-        public bool SickReset { get; set; }
-        public bool SickActive { get; set; }
-        public bool EStopReset { get; set; }
-        public bool EStop { get; set; }
-        //
-
+        public double RotationAngle { get; set; }
 
         public byte? OperationalSpeed { get; set; }
 

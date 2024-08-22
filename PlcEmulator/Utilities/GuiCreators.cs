@@ -1,6 +1,10 @@
+using System.Runtime.InteropServices.ObjectiveC;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Shapes;
+using System.Windows.Media;
+using System.Windows.Media.Media3D;
+using System.Reflection;
 
 namespace Utilities
 {
@@ -83,6 +87,16 @@ namespace Utilities
             infoStackPanel.Children.Add(positionTextBlock);
 
             return infoStackPanel;
+        }
+
+        public static Binding CreateBinding(string property, object source)
+        {
+            Binding binding = new Binding(property)
+            {
+                Source = source,
+            };
+
+            return binding;
         }
     }
 }
