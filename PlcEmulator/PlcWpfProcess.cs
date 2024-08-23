@@ -25,7 +25,7 @@ namespace PlcEmulatorCore
     {
         private Stopwatch _stopwatch;
         private bool _isRunning;
-        private Dictionary<int, DispatcherTimer> _motorTimers = new Dictionary<int, DispatcherTimer>();
+        private Dictionary<int, System.Timers.Timer> _motorTimers = new Dictionary<int, System.Timers.Timer>();
         private bool DarkModeOn;
 
         private PlcEmulatorGui _gui;
@@ -286,7 +286,7 @@ namespace PlcEmulatorCore
         {
 
             TextBoxSentData += (string.Format("{0:00}:{1:00}:{2:000}", _stopwatch.Elapsed.Minutes, _stopwatch.Elapsed.Seconds, _stopwatch.Elapsed.Milliseconds) + " | " + data + "\r\n");
-        
+            
         }
 
         private void UpdateOperation(string data)
@@ -310,9 +310,9 @@ namespace PlcEmulatorCore
 
                     if (!_motorTimers.ContainsKey(motorIndex))
                     {
-                        var timer = new DispatcherTimer();
-                        timer.Interval = TimeSpan.FromMilliseconds(10);
-                        timer.Tick += (sender, e) => RotateMotor(motorIndex);
+                        var timer = new System.Timers.Timer();
+                        timer.Interval = 10;
+                        timer.Elapsed += (sender, e) => RotateMotor(motorIndex);
                         _motorTimers[motorIndex] = timer;
                     }
 
@@ -332,50 +332,54 @@ namespace PlcEmulatorCore
 
         private void RotateMotor(int motorIndex)
         {
-            var motor = _process.PlcMachine.Motors[motorIndex];
-            if (motor == null) return;
-
-            double targetAngle = Helpers.RadiansToDegrees(motor.TargetPosition);
-            double currentAngle = Helpers.RadiansToDegrees(motor.AbsolutePosition);
-
-            if (Math.Abs(currentAngle - targetAngle) > 0.1)
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
-                int direction = currentAngle < targetAngle ? 1 : -1;
+                var motor = _process.PlcMachine.Motors[motorIndex];
+                if (motor == null) return;
 
-                int speed = (byte)motor.OperationalSpeed;
+                double targetAngle = Helpers.RadiansToDegrees(motor.TargetPosition);
+                double currentAngle = Helpers.RadiansToDegrees(motor.AbsolutePosition);
 
-                double rotationStep = Math.Min((speed * 0.05), Math.Abs(targetAngle - currentAngle));
+                if (Math.Abs(currentAngle - targetAngle) > 0.1)
+                {
+                    int direction = currentAngle < targetAngle ? 1 : -1;
 
-                currentAngle += direction * rotationStep;
+                    int speed = (byte)motor.OperationalSpeed;
 
-                motor.HiBytePos = (byte)((int)Helpers.DegreesToRadians(currentAngle) >> 8);
-                motor.LoBytePos = (byte)((int)Helpers.DegreesToRadians(currentAngle) & 0xFF);
-                motor.UpdateIndicators();
+                    double rotationStep = Math.Min((speed * 0.05), Math.Abs(targetAngle - currentAngle));
 
-                if ((direction > 0 && currentAngle >= targetAngle) ||
-                    (direction < 0 && currentAngle <= targetAngle))
+                    currentAngle += direction * rotationStep;
+
+                    motor.HiBytePos = (byte)((int)Helpers.DegreesToRadians(currentAngle) >> 8);
+                    motor.LoBytePos = (byte)((int)Helpers.DegreesToRadians(currentAngle) & 0xFF);
+                    motor.UpdateIndicators();
+
+                    if ((direction > 0 && currentAngle >= targetAngle) ||
+                        (direction < 0 && currentAngle <= targetAngle))
+                    {
+                        currentAngle = targetAngle;
+                    }
+
+                    motor.RotationAngle = currentAngle;
+                    TextBoxImageData = ("Rotated motor " + (motorIndex + 1) + ": " + (int)currentAngle + "°");
+                    //textBoxImageData.Text = ("LoByte: " + motor.LoBytePos + " | HiByte: " + motor.HiBytePos);
+
+                }
+                else
                 {
                     currentAngle = targetAngle;
+                    motor.HiBytePos = (byte)((int)Helpers.DegreesToRadians(currentAngle) >> 8);
+                    motor.LoBytePos = (byte)((int)Helpers.DegreesToRadians(currentAngle) & 0xFF);
+                    motor.UpdateIndicators();
+
+                    if (_motorTimers.ContainsKey(motorIndex))
+                    {
+                        _motorTimers[motorIndex].Stop();
+                        motor.MotorInProgress = false;
+                    }
                 }
 
-                motor.RotationAngle = currentAngle;
-                TextBoxImageData = ("Rotated motor " + (motorIndex + 1) + ": " + (int)currentAngle + "°");
-                //textBoxImageData.Text = ("LoByte: " + motor.LoBytePos + " | HiByte: " + motor.HiBytePos);
-
-            }
-            else
-            {
-                currentAngle = targetAngle;
-                motor.HiBytePos = (byte)((int)Helpers.DegreesToRadians(currentAngle) >> 8);
-                motor.LoBytePos = (byte)((int)Helpers.DegreesToRadians(currentAngle) & 0xFF);
-                motor.UpdateIndicators();
-
-                if (_motorTimers.ContainsKey(motorIndex))
-                {
-                    _motorTimers[motorIndex].Stop();
-                    motor.MotorInProgress = false;
-                }
-            }
+            });
         }
 
 
@@ -383,7 +387,7 @@ namespace PlcEmulatorCore
         {
             foreach (var timer in _motorTimers.Values)
             {
-                if (timer.IsEnabled)
+                if (timer.Enabled)
                 {
                     timer.Stop();
                 }

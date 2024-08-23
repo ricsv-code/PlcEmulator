@@ -19,5 +19,14 @@ namespace PlcEmulator
             InitializeComponent();
             root.DataContext = process;
         }
+
+        private void TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var textBox = sender as TextBox;
+            if (textBox != null)
+            {
+                textBox.ScrollToEnd();
+            }
+        }
     }
 }

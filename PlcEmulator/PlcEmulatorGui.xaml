@@ -46,7 +46,7 @@
 
         <TextBlock Margin="10,0,0,0" Height="20" Grid.Column="0" Grid.Row="1" Text="Received:"/>
 
-        <TextBox Text="{Binding TextBoxReceivedData}" Grid.Column="0" Grid.Row="2"
+        <TextBox Text="{Binding TextBoxReceivedData}" TextChanged="TextChanged" Grid.Column="0" Grid.Row="2"
              HorizontalAlignment="Left" Height="400" Margin="8,0,0,0" VerticalAlignment="Top" 
              Width="430" 
              TextWrapping="Wrap" 
@@ -55,7 +55,7 @@
 
         <TextBlock Margin="15,0,0,0" Height="20" Grid.Column="1" Grid.Row="1" Text="Sent:"/>
 
-        <TextBox Text="{Binding TextBoxSentData}" Grid.Column="1" Grid.Row="2"
+        <TextBox Text="{Binding TextBoxSentData}" TextChanged="TextChanged" Grid.Column="1" Grid.Row="2"
              HorizontalAlignment="Right" Height="400" Margin="0,0,8,0" VerticalAlignment="Top" 
              Width="430" 
              TextWrapping="Wrap" 
