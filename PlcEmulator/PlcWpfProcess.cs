@@ -23,6 +23,7 @@ namespace PlcEmulatorCore
 
     public class PlcWpfProcess : ViewModelBase
     {
+        #region Fields
         private Stopwatch _stopwatch;
         private bool _isRunning;
         private Dictionary<int, System.Timers.Timer> _motorTimers = new Dictionary<int, System.Timers.Timer>();
@@ -32,6 +33,10 @@ namespace PlcEmulatorCore
         private PlcProcess _process;
         private Commands _commands;
         private InfoText _infoText;
+
+        #endregion
+
+        #region Constructors
 
         public PlcWpfProcess()
         {
@@ -77,6 +82,10 @@ namespace PlcEmulatorCore
             _gui.Show();
 
         }
+
+        #endregion
+
+        #region Properties
 
         public ICommand StartCommand
         {
@@ -140,7 +149,9 @@ namespace PlcEmulatorCore
             set => SetProperty(ref _infoText.TextBoxSentData, value);
         }
 
+        #endregion
 
+        #region Methods
         private void DarkMode(object sender)
         {
             ResourceDictionary theme = new ResourceDictionary();
@@ -489,5 +500,7 @@ namespace PlcEmulatorCore
 
             }
         }
+
+        #endregion
     }
 }
