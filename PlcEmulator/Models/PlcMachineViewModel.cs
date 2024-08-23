@@ -37,26 +37,14 @@ namespace PlcEmulator
             get => _machine.MachineNeedsHoming;
             set => SetProperty(ref _machine.MachineNeedsHoming, value);
         }
-        public bool MachineInCenter
-        {
-            get => _machine.MachineInCenter;
-            set => SetProperty(ref _machine.MachineInCenter, value);
-        }
-        public bool MachineStill
-        {
-            get => _machine.MachineStill;
-            set => SetProperty(ref _machine.MachineStill, value);
-        }
-        public bool MachineInMotion
-        {
-            get => _machine.MachineInMotion;
-            set => SetProperty(ref _machine.MachineInMotion, value);
-        }
-        public bool MachineInHome
-        {
-            get => _machine.MachineInHome;
-            set => SetProperty(ref _machine.MachineInHome, value);
-        }
+        public bool MachineInCenter => Motors.All(motor => motor.InCenteredPosition);
+
+        public bool MachineStill => !Motors.Any(motor => motor.MotorInProgress);
+
+        public bool MachineInMotion => Motors.Any(motor => motor.MotorInProgress);
+
+        public bool MachineInHome => Motors.All(motor => motor.InHomePosition);
+
         //Status byte 5 on code 255
         public bool ProhibitMovement
         {

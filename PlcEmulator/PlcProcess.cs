@@ -435,7 +435,7 @@ namespace PlcEmulatorCore
                 byte[] response = HandleBaseline(request);
 
                 byte[] result = new byte[1];
-                if (motor.MotorInProgress) 
+                if (motor.MotorInProgress)
                     result[0] |= 1 << 0;
                 if (motor.MotorIsHomed)
                     result[0] |= 1 << 1;
@@ -506,25 +506,31 @@ namespace PlcEmulatorCore
                     //CalibrationMode
                 }
 
-                for (int motorIndex = 0; motorIndex < GlobalSettings.NumberOfMotors; motorIndex++)
-                {
-                    var motor = PlcMachine;
-
-                    PlcMachine.MachineInMotion = (mStatus & (1 << 0)) != 0;
-                    PlcMachine.MachineStill = (mStatus & (1 << 1)) != 0;
-                    PlcMachine.MachineNeedsHoming = (mStatus & (1 << 2)) != 0;
-                    PlcMachine.MachineInCenter = (mStatus & (1 << 3)) != 0;
-                    PlcMachine.MachineInHome = (mStatus & (1 << 4)) != 0;
-                    PlcMachine.OperationMode = (mStatus & (1 << 5)) != 0;
-                    PlcMachine.OverrideKey = (mStatus & (1 << 6)) != 0;
-
-                    PlcMachine.EStop = (oStatus & (1 << 0)) != 0;
-                    PlcMachine.EStopReset = (oStatus & (1 << 1)) != 0;
-                    PlcMachine.SickActive = (oStatus & (1 << 2)) != 0;
-                    PlcMachine.SickReset = (oStatus & (1 << 3)) != 0;
-                    PlcMachine.ProhibitMovement = (oStatus & (1 << 4)) != 0;
-
-                }
+                if (PlcMachine.MachineInMotion)
+                    mStatus |= 1 << 0;
+                if (PlcMachine.MachineStill)
+                    mStatus |= 1 << 1;
+                if (PlcMachine.MachineNeedsHoming)
+                    mStatus |= 1 << 2;
+                if (PlcMachine.MachineInCenter)
+                    mStatus |= 1 << 3;
+                if (PlcMachine.MachineInHome)
+                    mStatus |= 1 << 4;
+                if (PlcMachine.OperationMode)
+                    mStatus |= 1 << 5;
+                if (PlcMachine.OverrideKey)
+                    mStatus |= 1 << 6;
+ 
+                if (PlcMachine.EStop)
+                    oStatus |= 1 << 0;
+                if (PlcMachine.EStopReset)
+                    oStatus |= 1 << 1;
+                if (PlcMachine.SickActive)
+                    oStatus |= 1 << 2;
+                if (PlcMachine.SickReset)
+                    oStatus |= 1 << 3;
+                if (PlcMachine.ProhibitMovement)
+                    oStatus |= 1 << 4;
 
                 response[1] = mStatus;
                 response[5] = oStatus;
