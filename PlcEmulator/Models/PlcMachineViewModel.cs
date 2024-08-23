@@ -8,12 +8,15 @@ namespace PlcEmulator
         public PlcMachineViewModel(int numberOfMotors)
         {
             Motors = new List<MotorViewModel>();
+            Sensors = new List<SensorViewModel>();
             _machine = new PlcMachine();
 
             for (int _ = 0; _ < numberOfMotors; _++)
             {
                 Motors.Add(new MotorViewModel());
             }
+
+            Sensors.Add(new SensorViewModel(""));
         }
 
         private PlcMachine _machine;
@@ -21,6 +24,7 @@ namespace PlcEmulator
         public PlcMachine Machine => _machine;
 
         public List<MotorViewModel> Motors { get; set; }
+        public List<SensorViewModel> Sensors { get; set; }
 
         public bool OverrideKey 
         { 

@@ -13,8 +13,7 @@ namespace PlcEmulator
 
         private void ApplicationStartup(object sender, StartupEventArgs e)
         {
-            new PlcWpfProcess();
-
+            new StartUpDialog();
         }
     }
 

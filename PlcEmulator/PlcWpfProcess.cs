@@ -38,8 +38,11 @@ namespace PlcEmulatorCore
 
         #region Constructors
 
-        public PlcWpfProcess()
+        public PlcWpfProcess(string modelType)
         {
+
+
+
             _process = new PlcProcess();
             _gui = new PlcEmulatorGui(this);
 
