@@ -420,7 +420,7 @@ namespace PlcEmulatorCore
 
             for (int i = 0; i < GlobalSettings.NumberOfMotors; i++)
             {
-                var motorImage = new BitmapImage(new Uri("pack://application:,,,/arrow-right.png"));
+                var motorImage = new BitmapImage(new Uri("pack://application:,,,/Resources/arrow-right.png"));
 
                 var image = new Image();
 
