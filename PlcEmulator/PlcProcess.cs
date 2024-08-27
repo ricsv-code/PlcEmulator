@@ -202,7 +202,7 @@ namespace PlcEmulatorCore
         {
             if (request.Length < 10)
             {
-                return new byte[0];
+                return [];
             }
 
             byte opCode = request[0];
@@ -536,7 +536,7 @@ namespace PlcEmulatorCore
                 response[5] = oStatus;
 
                 response[6] = 0; //System Error Code
-                response[7] = 0; //Command Execution Error
+                response[7] = 0; //Command Execution Error, bara definierade i Op100 och Op102 enligt protokoll.
 
                 Helpers.LogSentData(SentData, response, "OP255");
 
