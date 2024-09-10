@@ -5,6 +5,8 @@ using System.Windows.Shapes;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Reflection;
+using static Utilities.GuiCreators;
+using System.Numerics;
 
 namespace Utilities
 {
@@ -95,8 +97,8 @@ namespace Utilities
             {
                 Source = source,
             };
-
             return binding;
         }
+
     }
 }

@@ -19,5 +19,9 @@ namespace PlcEmulator
         public ICommand StandardCommand;
         public ICommand NumberOfMotorsCommand;
 
+        public ICommand SendSomeErrorsCommand;
+
+
+
     }
 }

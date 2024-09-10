@@ -9,11 +9,17 @@ namespace PlcEmulator
 {
     public class InfoText
     {
+        public InfoText()
+        {
+
+            TextBoxReceivedData = new StringBuilder();
+            TextBoxSentData = new StringBuilder();
+        }
 
         public string TextBoxImageData;
         public string TextBoxOperation;
-        public string TextBoxReceivedData;
-        public string TextBoxSentData;
+        public StringBuilder TextBoxReceivedData;
+        public StringBuilder TextBoxSentData;
 
     }
 }

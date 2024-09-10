@@ -23,10 +23,6 @@ namespace PlcEmulatorCore
         public event EventHandler<string> SentData;
         #endregion
 
-        #region Properties
-        public PlcMachineViewModel PlcMachine { get; set; }
-
-        #endregion
 
         #region Constructors
         public PlcProcess()
@@ -34,9 +30,18 @@ namespace PlcEmulatorCore
 
             PlcMachine = new PlcMachineViewModel(GlobalSettings.NumberOfMotors);
 
+
+            GlobalSettings.NumberOfMotorsChanged -= HandleNumberOfMotorsChanged;
             GlobalSettings.NumberOfMotorsChanged += HandleNumberOfMotorsChanged;
 
+            SendSomeErrors = false;
+
         }
+        #endregion
+
+        #region Properties
+        public bool SendSomeErrors { get; set; }
+        public PlcMachineViewModel PlcMachine { get; set; }
         #endregion
 
         #region Public methods
@@ -535,7 +540,10 @@ namespace PlcEmulatorCore
                 response[1] = mStatus;
                 response[5] = oStatus;
 
-                response[6] = 0; //System Error Code
+                response[6] = (byte)(SendSomeErrors ? 1 : 0); //System Error Code
+
+           
+
                 response[7] = 0; //Command Execution Error, bara definierade i Op100 och Op102 enligt protokoll.
 
                 Helpers.LogSentData(SentData, response, "OP255");

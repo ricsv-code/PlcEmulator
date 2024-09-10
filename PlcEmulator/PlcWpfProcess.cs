@@ -60,6 +60,8 @@ namespace PlcEmulatorCore
             DarkModeCommand = new RelayCommand(DarkMode);
             StandardCommand = new RelayCommand(StandardMode);
 
+            SendSomeErrorsCommand = new RelayCommand(SendSomeErrors);
+
             UpdateMenuItems();
 
             _gui.ButtonStop.IsEnabled = false;
@@ -85,6 +87,8 @@ namespace PlcEmulatorCore
             _gui.Show();
 
         }
+
+
 
         #endregion
 
@@ -131,6 +135,12 @@ namespace PlcEmulatorCore
             set => SetProperty(ref _commands.NumberOfMotorsCommand, value);
         }
 
+        public ICommand SendSomeErrorsCommand
+        {
+            get => _commands.SendSomeErrorsCommand;
+            set => SetProperty(ref _commands.SendSomeErrorsCommand, value);
+        }
+
         public string TextBoxImageData
         {
             get => _infoText.TextBoxImageData;
@@ -143,18 +153,54 @@ namespace PlcEmulatorCore
         }
         public string TextBoxReceivedData
         {
-            get => _infoText.TextBoxReceivedData;
-            set => SetProperty(ref _infoText.TextBoxReceivedData, value);
+            get => _infoText.TextBoxReceivedData.ToString();
+            set
+            {
+                _infoText.TextBoxReceivedData.Append(value);
+
+                if (_infoText.TextBoxReceivedData.Length > 5000)
+                {
+                    _infoText.TextBoxReceivedData.Remove(0, _infoText.TextBoxReceivedData.Length - 5000);
+                }
+
+
+                OnPropertyChanged(nameof(TextBoxReceivedData));
+            }
         }
+
         public string TextBoxSentData
         {
-            get => _infoText.TextBoxSentData;
-            set => SetProperty(ref _infoText.TextBoxSentData, value);
+            get => _infoText.TextBoxSentData.ToString();
+            set
+            {
+                _infoText.TextBoxSentData.Append(value);
+
+                if (_infoText.TextBoxSentData.Length > 5000)
+                {
+                    _infoText.TextBoxSentData.Remove(0, _infoText.TextBoxSentData.Length - 5000);
+                }
+
+                OnPropertyChanged(nameof(TextBoxSentData));
+            }
         }
 
         #endregion
 
         #region Methods
+
+        private void SendSomeErrors(object parameter)
+        {
+            bool? isChecked = parameter as bool?;
+            if (isChecked.HasValue && isChecked.Value)
+            {
+                _process.SendSomeErrors = true;
+            }
+            else
+            {
+                _process.SendSomeErrors = false;
+            }
+        }
+
         private void DarkMode(object sender)
         {
             ResourceDictionary theme = new ResourceDictionary();
@@ -204,7 +250,7 @@ namespace PlcEmulatorCore
             }
             catch (Exception ex)
             {
-                TextBoxReceivedData += ($"Error: {ex.Message}$\r\n");
+                TextBoxReceivedData = ($"Error: {ex.Message}$\r\n");
             }
         }
 
@@ -233,7 +279,11 @@ namespace PlcEmulatorCore
 
         private void Clean(object sender)
         {
+            
+            _infoText.TextBoxSentData.Clear();
             TextBoxSentData = string.Empty;
+
+            _infoText.TextBoxReceivedData.Clear();
             TextBoxReceivedData = string.Empty;
         }
 
@@ -292,15 +342,15 @@ namespace PlcEmulatorCore
         private void UpdateReceivedData(string data)
         {
 
-            TextBoxReceivedData += (string.Format("{0:00}:{1:00}:{2:000}", _stopwatch.Elapsed.Minutes, _stopwatch.Elapsed.Seconds, _stopwatch.Elapsed.Milliseconds) + " | " + data + "\r\n");
+            TextBoxReceivedData = (string.Format("{0:00}:{1:00}:{2:000}", _stopwatch.Elapsed.Minutes, _stopwatch.Elapsed.Seconds, _stopwatch.Elapsed.Milliseconds) + " | " + data + "\r\n");
 
         }
 
         private void UpdateSentData(string data)
         {
 
-            TextBoxSentData += (string.Format("{0:00}:{1:00}:{2:000}", _stopwatch.Elapsed.Minutes, _stopwatch.Elapsed.Seconds, _stopwatch.Elapsed.Milliseconds) + " | " + data + "\r\n");
-            
+            TextBoxSentData = (string.Format("{0:00}:{1:00}:{2:000}", _stopwatch.Elapsed.Minutes, _stopwatch.Elapsed.Seconds, _stopwatch.Elapsed.Milliseconds) + " | " + data + "\r\n");
+
         }
 
         private void UpdateOperation(string data)
