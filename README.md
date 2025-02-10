@@ -1,6 +1,6 @@
 ## PlcEmulator(beta) v1.1
 
-Actually a PlcSimulator. Semantics. Changing name is a hassle.
+Actually a simulator.
 
 ## How to use?
 
