@@ -63,87 +63,45 @@ namespace PlcEmulatorCore
 
         public void RunScript(string scripts)
         {
-            var lines = scripts.Split(('\n'), StringSplitOptions.RemoveEmptyEntries);
+            var actions = new Dictionary<string, Action<Motor, int>>
+            {
+                { "CenterPosition", (m, v) => m.CenterPosition = v },
+                { "HomePosition",   (m, v) => m.HomePosition = v },
+                { "MaxPosition",    (m, v) => m.MaxPosition = v },
+                { "MinPosition",    (m, v) => m.MinPosition = v },
+            };
+
+            var lines = scripts.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
             foreach (var line in lines)
             {
-                var parts = line.Split('=');
-
+                var parts = line.Split('=', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length != 3) continue;
 
                 string key = parts[0].Trim();
                 int index = int.Parse(parts[1].Trim());
                 int val = int.Parse(parts[2].Trim());
 
+                if (!actions.TryGetValue(key, out var setter))
+                    continue;
 
-                if (key.Equals("CenterPosition"))
-                {
-                    if (index == 0)
+                if (index == 0)
                     {
-                        foreach (var motor in PlcMachine.Motors)
-                        {
-                            motor.CenterPosition = val;
-                            motor.UpdateIndicators();
-                        }
-                    }
-                    else if (index < PlcMachine.Motors.Count)
+                    foreach (var motor in PlcMachine.Motors)
                     {
-                        PlcMachine.Motors[index - 1].CenterPosition = val;
-                        PlcMachine.Motors[index - 1].UpdateIndicators();
+                        setter(motor, val);
+                        motor.UpdateIndicators();
                     }
                 }
-
-                if (key.Equals("HomePosition"))
+                else if (index > 0 && index <= PlcMachine.Motors.Count)
                 {
-                    if (index == 0)
-                    {
-                        foreach (var motor in PlcMachine.Motors)
-                        {
-                            motor.HomePosition = val;
-                            motor.UpdateIndicators();
-                        }
-                    }
-                    else if (index < PlcMachine.Motors.Count)
-                    {
-                        PlcMachine.Motors[index - 1].HomePosition = val;
-                        PlcMachine.Motors[index - 1].UpdateIndicators();
-                    }
-                }
-
-                if (key.Equals("MaxPosition"))
-                {
-                    if (index == 0)
-                    {
-                        foreach (var motor in PlcMachine.Motors)
-                        {
-                            motor.MaxPosition = val;
-                            motor.UpdateIndicators();
-                        }
-                    }
-                    else if (index < PlcMachine.Motors.Count)
-                    {
-                        PlcMachine.Motors[index - 1].MaxPosition = val;
-                        PlcMachine.Motors[index - 1].UpdateIndicators();
-
-                    }
-                }
-
-                if (key.Equals("MinPosition"))
-                {
-                    if (index == 0)
-                    {
-                        foreach (var motor in PlcMachine.Motors)
-                        {
-                            motor.MinPosition = val;
-                            motor.UpdateIndicators();
-                        }
-                    }
-                    else if (index < PlcMachine.Motors.Count)
-                    {
-                        PlcMachine.Motors[index - 1].MinPosition = val;
-                        PlcMachine.Motors[index - 1].UpdateIndicators();
-                    }
+                    var motor = PlcMachine.Motors[index - 1];
+                    setter(motor, val);
+                    motor.UpdateIndicators();
                 }
             }
         }
+
 
         #endregion
 
